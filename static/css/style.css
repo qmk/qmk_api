@@ -1,0 +1,49 @@
+/* Colors:
+ * Yellow- #ffdc68
+ * Blue- #112546
+ * Red- #a40214
+ * Cream- #fffeee
+ */
+
+body {
+    font-family:"Istok Web", Arial, helvetica, sans-serif;
+    background-color: #fff;
+    color: #333;
+    padding-top: 60px;
+    padding-bottom: 40px;
+}
+
+a, a:visited {
+    color: #000;
+}
+
+a sup, a:hover {
+    color: #a40214;
+}
+
+h1, h2 {
+    text-align: center;
+}
+
+h1 {
+    font-size: 400%;
+}
+
+#title {
+    margin-top: 1ex;
+    margin-bottom: 2ex;
+}
+
+.center-block {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.error_message {
+    color: #a40214
+}
+
+.navigation {
+    padding-left: 80px;
+}

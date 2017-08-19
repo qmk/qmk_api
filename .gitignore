@@ -1,0 +1,6 @@
+.idea
+qmk_firmware
+firmwares
+__pycache__
+*.egg-info
+*.pyc
