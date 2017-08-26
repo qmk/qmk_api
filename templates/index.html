@@ -46,10 +46,10 @@
 
     <h2>Submitting a Compile Job</h2>
 
-    <p>To compile your keymap into a firmware simply POST your JSON to the <code>/api/v1/compile</code> endpoint. In the following example we've placed the JSON payload into a file named <code>json_data</code>.</p>
+    <p>To compile your keymap into a firmware simply POST your JSON to the <code>/v1/compile</code> endpoint. In the following example we've placed the JSON payload into a file named <code>json_data</code>.</p>
 
 		<pre>
-$ curl -H "Content-Type: application/json" -X POST -d "$(< json_data)" https://qmk_keymap.clueboard.co/api/v1/compile
+$ curl -H "Content-Type: application/json" -X POST -d "$(< json_data)" https://qmk_keymap.clueboard.co/v1/compile
 {
   "enqueued": true,
   "job_id": "ea1514b3-bdfc-4a7b-9b5c-08752684f7f6"
@@ -60,7 +60,7 @@ $ curl -H "Content-Type: application/json" -X POST -d "$(< json_data)" https://q
     <p>After submitting your keymap you can check the status using a simple HTTP GET call:</p>
 
     <pre>
-$ curl http://qmk_keymap.clueboard.co/api/v1/compile/ea1514b3-bdfc-4a7b-9b5c-08752684f7f6
+$ curl http://qmk_keymap.clueboard.co/v1/compile/ea1514b3-bdfc-4a7b-9b5c-08752684f7f6
 {
   "created_at": "Sat, 19 Aug 2017 21:39:12 GMT",
   "enqueued_at": "Sat, 19 Aug 2017 21:39:12 GMT",
@@ -85,7 +85,7 @@ $ curl http://qmk_keymap.clueboard.co/api/v1/compile/ea1514b3-bdfc-4a7b-9b5c-087
 
     <p>When your job has completed and the compilation was successful you can download your new firmware. To download only the .hex file for flashing append "hex" to your URL:</p>
 
-    <pre>$ curl -i http://0.0.0.0:5000/api/v1/compile/9dbf56d1-9d6f-4d1a-a7e3-af1d6ecbdd65/hex
+    <pre>$ curl -i http://0.0.0.0:5000/v1/compile/9dbf56d1-9d6f-4d1a-a7e3-af1d6ecbdd65/hex
 HTTP/1.0 200 OK
 Content-Disposition: attachment; filename=clueboard_rev2_my_awesome_keymap.hex
 Content-Length: 63558
@@ -104,7 +104,7 @@ Date: Sat, 19 Aug 2017 22:47:19 GMT
 
     <p>If you'd like to download the source code as well as the hex you can append "src" instead:</p>
 
-    <pre>$ curl http://0.0.0.0:5000/api/v1/compile/9dbf56d1-9d6f-4d1a-a7e3-af1d6ecbdd65/src > qmk_firmware.zip
+    <pre>$ curl http://0.0.0.0:5000/v1/compile/9dbf56d1-9d6f-4d1a-a7e3-af1d6ecbdd65/src > qmk_firmware.zip
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100 10.8M  100 10.8M    0     0  52.2M      0 --:--:-- --:--:-- --:--:-- 52.0M
