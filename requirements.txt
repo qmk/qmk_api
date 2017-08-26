@@ -1,3 +1,4 @@
 rq
 flask
+flask-cors
 gunicorn

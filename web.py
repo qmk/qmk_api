@@ -1,9 +1,11 @@
 from os.path import exists
 from qmk_compiler import compile_firmware, redis
 from flask import jsonify, Flask, render_template, request, send_file
+from flask_cors import CORS, cross_origin
 from rq import Queue
 
 app = Flask(__name__)
+cors = CORS(app, resources={'/api/*': {'origins': '*'}})
 rq = Queue(connection=redis)
 
 # Figure out what keyboards are available
