@@ -1,4 +1,3 @@
-hashids
 minio
 rq
 flask
