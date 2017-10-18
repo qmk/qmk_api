@@ -2,7 +2,7 @@
 import json
 import requests
 from sys import argv
-from time import sleep, strftime
+from time import sleep, time
 
 if len(argv) > 1:
     baseurl = argv[1]
@@ -17,10 +17,11 @@ http.headers.update({'User-Agent': 'qmk_compile_api test client v0.1'})
 json_data = json.load(open('json_data'))
 
 # Post our compile job to the API
+startTime = time()
 compile = http.post(baseurl, json=json_data)
 if compile.status_code in [200, 201]:
     job = compile.json()
-    print('*** Submitted job', job['job_id'], 'at', strftime('%Y-%m-%d %H:%M:%S'))
+    print('*** Submitted job', job['job_id'])
 else:
     print('*** Could not submit compile job!')
     exit(1)
@@ -40,6 +41,7 @@ while True:
         break
     elif job_status['is_finished']:
         print('***', 'Compile succeeded!')
+        print('*** Waited %s seconds for firmware.' % (time()-startTime))
         print('***', 'Download Hex: %s/%s/hex' % (baseurl, job['job_id']))
         print('***', 'Download Src: %s/%s/source' % (baseurl, job['job_id']))
         exit(0)
@@ -61,6 +63,7 @@ while True:
                 sleep(2)
             elif job_status['is_finished']:
                 print('***', 'Compile succeeded!')
+                print('*** Waited %s seconds for firmware.' % (time()-startTime))
                 print('***', 'Download Hex: %s/%s/hex' % (baseurl, job['job_id']))
                 print('***', 'Download Src: %s/%s/source' % (baseurl, job['job_id']))
                 exit(0)
