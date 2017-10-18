@@ -89,20 +89,27 @@ def POST_v1_compile():
 def GET_v1_compile_job_id(job_id):
     """Fetch the status of a compile job.
     """
+    # Check redis first.
     job = rq.fetch_job(job_id)
-    if not job:
-        return error("Compile job not found", 404)
+    if job:
+        return jsonify({
+            'created_at': job.created_at,
+            'enqueued_at': job.enqueued_at,
+            'id': job.id,
+            'is_failed': job.is_failed,
+            'is_finished': job.is_finished,
+            'is_queued': job.is_queued,
+            'is_started': job.is_started,
+            'result': job.result
+        })
 
-    return jsonify({
-        'created_at': job.created_at,
-        'enqueued_at': job.enqueued_at,
-        'id': job.id,
-        'is_failed': job.is_failed,
-        'is_finished': job.is_finished,
-        'is_queued': job.is_queued,
-        'is_started': job.is_started,
-        'result': job.result
-    })
+    # Check for cached json if it's not in redis
+    job = get_job_metadata(job_id)
+    if job:
+        return jsonify(job)
+
+    # Couldn't find it
+    return error("Compile job not found", 404)
 
 
 @app.route('/v1/compile/<string:job_id>/hex', methods=['GET'])
@@ -125,7 +132,7 @@ def GET_v1_compile_job_id_hex(job_id):
     return error("Compile job not finished or other error.", 422)
 
 
-@app.route('/v1/compile/<string:job_id>/src', methods=['GET'])
+@app.route('/v1/compile/<string:job_id>/source', methods=['GET'])
 def GET_v1_compile_job_id_src(job_id):
     """Download a completed compile job.
     """
