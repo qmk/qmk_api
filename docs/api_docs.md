@@ -27,7 +27,7 @@ As you can see the payload consists of identifiers for keyboard, subproject (if 
 To compile your keymap into a firmware simply POST your JSON to the `/v1/compile` endpoint. In the following example we've placed the JSON payload into a file named `json_data`.
 
 ```
-$ curl -H "Content-Type: application/json" -X POST -d "$(< json_data)" https://compile.clueboard.co/v1/compile
+$ curl -H "Content-Type: application/json" -X POST -d "$(< json_data)" http://compile.qmk.fm/v1/compile
 {
   "enqueued": true,
   "job_id": "ea1514b3-bdfc-4a7b-9b5c-08752684f7f6"
@@ -39,7 +39,7 @@ $ curl -H "Content-Type: application/json" -X POST -d "$(< json_data)" https://c
 After submitting your keymap you can check the status using a simple HTTP GET call:
 
 ```
-$ curl https://compile.clueboard.co/v1/compile/ea1514b3-bdfc-4a7b-9b5c-08752684f7f6
+$ curl http://compile.qmk.fm/v1/compile/ea1514b3-bdfc-4a7b-9b5c-08752684f7f6
 {
   "created_at": "Sat, 19 Aug 2017 21:39:12 GMT",
   "enqueued_at": "Sat, 19 Aug 2017 21:39:12 GMT",
@@ -62,7 +62,7 @@ This shows us that the job has made it through the queue and is currently runnin
 When your job has completed and the compilation was successful you can download your new firmware. To download only the .hex file for flashing append "hex" to your URL:
 
 ```
-$ curl -i https://compile.clueboard.co/v1/compile/9dbf56d1-9d6f-4d1a-a7e3-af1d6ecbdd65/hex
+$ curl -i http://compile.qmk.fm/v1/compile/9dbf56d1-9d6f-4d1a-a7e3-af1d6ecbdd65/hex
 HTTP/1.0 200 OK
 Content-Disposition: attachment; filename=clueboard_rev2_my_awesome_keymap.hex
 Content-Length: 63558
@@ -83,7 +83,7 @@ Date: Sat, 19 Aug 2017 22:47:19 GMT
 If you'd like to download the source code as well as the hex you can append "source" instead:
 
 ```
-$ curl https://compile.clueboard.co/v1/compile/9dbf56d1-9d6f-4d1a-a7e3-af1d6ecbdd65/source > qmk_firmware.zip
+$ curl http://compile.qmk.fm/v1/compile/9dbf56d1-9d6f-4d1a-a7e3-af1d6ecbdd65/source > qmk_firmware.zip
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100 10.8M  100 10.8M    0     0  52.2M      0 --:--:-- --:--:-- --:--:-- 52.0M

@@ -41,12 +41,12 @@ def get_job_metadata(job_id):
 def root():
     """Serve up the documentation for this API.
     """
-    return redirect('http://github.com/qmk/qmk_compiler_api/tree/master/docs')
+    return redirect('https://docs.compile.qmk.fm/')
 
 
 @app.route('/v1', methods=['GET'])
 def GET_v1():
-    """Serve up the documentation for this API.
+    """Return the API's status.
     """
     return jsonify({
         'status': 'running',
