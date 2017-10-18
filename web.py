@@ -28,7 +28,7 @@ def get_job_metadata(job_id):
     """
     if STORAGE_ENGINE == 'minio':
         json_text = minio.get_object(MINIO_BUCKET, '%s/%s.json' % (job_id, job_id))
-        return json.loads(json_text.data)
+        return json.loads(json_text.data.decode('utf-8'))
     else:
         json_path = '%s/%s/%s.json' % (FILESYSTEM_PATH, job_id, job_id)
         if exists(json_path):
