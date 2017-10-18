@@ -1,36 +1,19 @@
 import json
 from flask import jsonify, Flask, render_template, request, send_file
-from flask_cors import CORS, cross_origin
-from minio import Minio
-from os import environ
+from flask_cors import CORS
 from os.path import exists
 from rq import Queue
-from qmk_compiler import compile_firmware, redis
+from qmk_compiler import STORAGE_ENGINE, FILESYSTEM_PATH, MINIO_BUCKET, compile_firmware, minio, redis
 
 if exists('version.txt'):
     __VERSION__ = open('version.txt').read()
 else:
     __VERSION__ = '__UNKNOWN__'
 
-# Configuration
-STORAGE_ENGINE = environ.get('STORAGE_ENGINE', 'minio')  # 'minio' or 'filesystem'
-FILESYSTEM_PATH = environ.get('FILESYSTEM_PATH', 'firmwares')
-MINIO_HOST = environ.get('MINIO_HOST', 'lb.minio:9000')
-MINIO_LOCATION = environ.get('MINIO_LOCATION', 'us-east-1')
-MINIO_BUCKET = environ.get('MINIO_BUCKET', 'compiled-qmk-firmware')
-MINIO_ACCESS_KEY = environ.get('MINIO_ACCESS_KEY', '')
-MINIO_SECRET_KEY = environ.get('MINIO_SECRET_KEY', '')
-MINIO_SECURE = False
-REDIS_HOST = environ.get('REDIS_HOST', 'redis.qmk-compile-api')
-
 # Useful objects
 app = Flask(__name__)
 cors = CORS(app, resources={'/v*/*': {'origins': '*'}})
 rq = Queue(connection=redis)
-minio = Minio(MINIO_HOST, access_key=MINIO_ACCESS_KEY, secret_key=MINIO_SECRET_KEY, secure=MINIO_SECURE)
-
-# Figure out what keyboards are available
-app.config['COMPILE_TIMEOUT'] = 60
 
 ## Helper functions
 def error(message, code=400, **kwargs):
