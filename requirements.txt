@@ -1,3 +1,4 @@
+minio
 rq
 flask
 flask-cors
