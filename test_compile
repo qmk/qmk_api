@@ -1,1 +1,56 @@
-curl -i -H "Accept: application/json" -H 'Content-Type: application/json' -d "$(<json_data)" http://localhost:5000/v1/compile
+#!/usr/bin/env python3
+import json
+import requests
+from sys import argv
+from time import sleep
+
+if len(argv) > 1:
+    baseurl = argv[1]
+else:
+    baseurl = 'http://127.0.0.1:5000/v1/compile'
+
+http = requests.Session()
+http.headers.update({'Accept': 'application/json'})
+http.headers.update({'User-Agent': 'qmk_compile_api test client v0.1'})
+
+# Prepare our request
+json_data = json.load(open('json_data'))
+
+# Post our compile job to the API
+compile = http.post(baseurl, json=json_data)
+if compile.status_code in [200, 201]:
+    job = compile.json()
+else:
+    print('*** Could not submit compile job!')
+    exit(1)
+
+# Watch the progress of our compile job
+while True:
+    job_status = http.get(baseurl + '/' + job['job_id'])
+    if job_status.status_code in [200, 201]:
+        job_status = job_status.json()
+    else:
+        print('*** Could not look up job status!')
+        print(job_status.text)
+        exit(2)
+
+    if job_status['is_failed']:
+        print('***', 'Compile failed!')
+        break
+    elif job_status['is_finished']:
+        print('***', 'Compile succeeded!')
+        print('***', 'Download Hex: %s/%s/hex' % (baseurl, job['job_id']))
+        print('***', 'Download Src: %s/%s/source' % (baseurl, job['job_id']))
+        exit(0)
+    elif job_status['is_queued']:
+        print('***', 'Waiting since:', job_status['created_at'])
+        print('***', 'Status: Queued')
+        sleep(2)
+    elif job_status['is_started']:
+        print('***', 'Waiting since:', job_status['created_at'])
+        print('***', 'Status: Compiling')
+        sleep(2)
+    else:
+        print('*** Unknown job status!')
+        print('***', job_status)
+        sleep(2)
