@@ -1,17 +1,33 @@
-from os.path import exists
-from qmk_compiler import compile_firmware, redis
+import json
 from flask import jsonify, Flask, render_template, request, send_file
 from flask_cors import CORS, cross_origin
+from minio import Minio
+from os import environ
+from os.path import exists
 from rq import Queue
+from qmk_compiler import compile_firmware, redis
 
 if exists('version.txt'):
     __VERSION__ = open('version.txt').read()
 else:
     __VERSION__ = '__UNKNOWN__'
 
+# Configuration
+STORAGE_ENGINE = environ.get('STORAGE_ENGINE', 'minio')  # 'minio' or 'filesystem'
+FILESYSTEM_PATH = environ.get('FILESYSTEM_PATH', 'firmwares')
+MINIO_HOST = environ.get('MINIO_HOST', 'lb.minio:9000')
+MINIO_LOCATION = environ.get('MINIO_LOCATION', 'us-east-1')
+MINIO_BUCKET = environ.get('MINIO_BUCKET', 'compiled-qmk-firmware')
+MINIO_ACCESS_KEY = environ.get('MINIO_ACCESS_KEY', '')
+MINIO_SECRET_KEY = environ.get('MINIO_SECRET_KEY', '')
+MINIO_SECURE = False
+REDIS_HOST = environ.get('REDIS_HOST', 'redis.qmk-compile-api')
+
+# Useful objects
 app = Flask(__name__)
 cors = CORS(app, resources={'/v*/*': {'origins': '*'}})
 rq = Queue(connection=redis)
+minio = Minio(MINIO_HOST, access_key=MINIO_ACCESS_KEY, secret_key=MINIO_SECRET_KEY, secure=MINIO_SECURE)
 
 # Figure out what keyboards are available
 app.config['COMPILE_TIMEOUT'] = 60
@@ -24,6 +40,18 @@ def error(message, code=400, **kwargs):
     return jsonify(kwargs), code
 
 
+def get_job_metadata(job_id):
+    """Fetch a job's metadata from the file store.
+    """
+    if STORAGE_ENGINE == 'minio':
+        json_text = minio.get_object(MINIO_BUCKET, '%s/%s.json' % (job_id, job_id))
+        return json.loads(json_text.data)
+    else:
+        json_path = '%s/%s/%s.json' % (FILESYSTEM_PATH, job_id, job_id)
+        if exists(json_path):
+            return json.load(open(json_path))
+
+
 ## Views
 @app.route('/', methods=['GET'])
 def root():
@@ -33,7 +61,7 @@ def root():
 
 
 @app.route('/v1', methods=['GET'])
-def v1():
+def GET_v1():
     """Serve up the documentation for this API.
     """
     return jsonify({
@@ -50,15 +78,15 @@ def POST_v1_compile():
     if not data:
         return error("Invalid JSON data!")
 
-    if '/' in data['keyboard'] or '/' in data['subproject'] or '/' in data['keymap']:
+    if '.' in data['keyboard'] or '/' in data['keymap']:
         return error("Fuck off hacker.", 422)
 
-    job = compile_firmware.delay(data['keyboard'], data['subproject'], data['keymap'], data['layers'])
+    job = compile_firmware.delay(data['keyboard'], data['keymap'], data['layout'], data['layers'])
     return jsonify({'enqueued': True, 'job_id': job.id})
 
 
 @app.route('/v1/compile/<string:job_id>', methods=['GET'])
-def POST_v1_compile_job_id(job_id):
+def GET_v1_compile_job_id(job_id):
     """Fetch the status of a compile job.
     """
     job = rq.fetch_job(job_id)
@@ -78,29 +106,43 @@ def POST_v1_compile_job_id(job_id):
 
 
 @app.route('/v1/compile/<string:job_id>/hex', methods=['GET'])
-def POST_v1_compile_job_id_hex(job_id):
+def GET_v1_compile_job_id_hex(job_id):
     """Download a compiled firmware
     """
-    job = rq.fetch_job(job_id)
+    job = get_job_metadata(job_id)
     if not job:
         return error("Compile job not found", 404)
 
-    if job.is_finished and job.result['firmware']:
-        filename = '%(keyboard)s_%(subproject)s_%(keymap)s.hex' % job.result
-        return send_file('firmwares/%s/%s' % (job_id, filename), 'application/octet-stream', as_attachment=True, attachment_filename=filename)
+    if job['firmware']:
+        if STORAGE_ENGINE == 'minio':
+            firmware_file = minio.get_object(MINIO_BUCKET, '/'.join((job_id, job['firmware_filename'])))
+            return send_file(firmware_file, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['firmware_filename'])
+        else:
+            filename = '/'.join((FILESYSTEM_PATH, job_id, job['firmware_filename']))
+            if exists(filename):
+                return send_file(filename, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['firmware_filename'])
 
-    # Send a 400 if we can't find the job or firmware.
     return error("Compile job not finished or other error.", 422)
 
 
 @app.route('/v1/compile/<string:job_id>/src', methods=['GET'])
-def POST_v1_compile_job_id_src(job_id):
+def GET_v1_compile_job_id_src(job_id):
     """Download a completed compile job.
     """
-    if exists('firmwares/%s/qmk_firmware.zip' % job_id):
-        return send_file('firmwares/%s/qmk_firmware.zip' % job_id, 'application/octet-stream', as_attachment=True, attachment_filename='qmk_firmware.zip')
+    job = get_job_metadata(job_id)
+    if not job:
+        return error("Compile job not found", 404)
 
-    return error("Compile job not finished or other error.", 404)
+    if job['firmware']:
+        if STORAGE_ENGINE == 'minio':
+            firmware_file = minio.get_object(MINIO_BUCKET, '/'.join((job_id, job['source_archive'])))
+            return send_file(firmware_file, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['source_archive'])
+        else:
+            filename = '/'.join((FILESYSTEM_PATH, job_id, job['firmware_filename']))
+            if exists(filename):
+                return send_file(filename, 'application/octet-stream', as_attachment=True, attachment_filename=filename)
+
+    return error("Compile job not finished or other error.", 422)
 
 
 if __name__ == '__main__':

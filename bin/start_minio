@@ -1,0 +1,10 @@
+#!/bin/sh
+
+MINIO_ACCESS_KEY='minio_dev'
+MINIO_SECRET_KEY='minio_dev_secret'
+
+export MINIO_ACCESS_KEY MINIO_SECRET_KEY
+
+[ -d minio_data ] || mkdir minio_data
+
+minio server --address 127.0.0.1:9000 minio_data

@@ -1,0 +1,6 @@
+MINIO_ACCESS_KEY='minio_dev'
+MINIO_SECRET_KEY='minio_dev_secret'
+
+export MINIO_ACCESS_KEY MINIO_SECRET_KEY
+
+rq worker -v

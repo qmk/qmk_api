@@ -1,0 +1,1 @@
+curl -i -H "Accept: application/json" -H 'Content-Type: application/json' -d "$(<json_data)" http://localhost:5000/v1/compile
