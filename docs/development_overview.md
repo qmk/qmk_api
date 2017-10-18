@@ -1,0 +1,44 @@
+# QMK Compiler Development Guide
+
+This page attempts to introduce developers to the QMK Compiler. It does not go into nitty gritty details- for that you should read code. What this will give you is a framework to hang your understanding on as you read the code.
+
+# Overview
+
+The QMK Compile API consists of a few movings parts:
+
+![Architecture Diagram](architecture.svg)
+
+API Clients interact exclusively with the API service. This is where they submit jobs, check status, and download results. The API service inserts compile jobs into [Redis Queue](http://python-rq.org) and checks both RQ and Minio for the results of those jobs.
+
+Workers fetch new compile jobs from RQ, compile them, and then upload the source and the binary to our S3 compatible storage engine, [Minio](http://minio.io).
+
+# API Service
+
+The API service is a relatively simple Flask application. There are a few main views you should understand.
+
+## @app.route('/v1/compile', methods=['POST'])
+
+This is the main entrypoint for the API. A client's interaction starts here. The client POST's a JSON document describing their keyboard, and the API does some (very) basic validation of that JSON before submitting the compile job.
+
+## @app.route('/v1/compile/<string:job_id>', methods=['GET'])
+
+This is the most frequently called endpoint. It pulls the job details from redis, if they're still available, or the cached job details on Minio if they're not.
+
+## @app.route('/v1/compile/<string:job_id>/hex', methods=['GET'])
+
+This method allows users to download the compiled firmware file.
+
+## @app.route('/v1/compile/<string:job_id>/source', methods=['GET'])
+
+This method allows users to download the source for their firmware.
+
+# Workers
+
+QMK Compiler Workers are responsible for doing the actual building. When a worker pulls a job from RQ it does several things to complete that job:
+
+* Make a fresh qmk_firmware checkout
+* Use the supplied layers and keyboard metadata to build a `keymap.c`
+* Build the firmware
+* Zip a copy of the source
+* Upload the firmware, source zip, and a metadata file to Minio.
+* Report the status of the job to RQ

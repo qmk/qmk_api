@@ -1,11 +1,23 @@
 #!/usr/bin/env python3
 import json
 import requests
+from os import exists
 from sys import argv
 from time import sleep, time
 
-if len(argv) > 1:
-    baseurl = argv[1]
+if len(argv) < 2:
+    print('Usage: %s <json_file> [base_url]')
+    exit(1)
+else:
+    json_file = argv[1]
+
+if not exists(json_file):
+    print('*** Could not find file %s!\n' % json_file)
+    print('Usage: %s <json_file> [base_url]')
+    exit(2)
+
+if len(argv) > 2:
+    baseurl = argv[2]
 else:
     baseurl = 'http://127.0.0.1:5000/v1/compile'
 
@@ -14,7 +26,7 @@ http.headers.update({'Accept': 'application/json'})
 http.headers.update({'User-Agent': 'qmk_compile_api test client v0.1'})
 
 # Prepare our request
-json_data = json.load(open('json_data'))
+json_data = json.load(open(json_file))
 
 # Post our compile job to the API
 startTime = time()

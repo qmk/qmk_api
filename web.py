@@ -1,5 +1,6 @@
 import json
-from flask import jsonify, Flask, render_template, request, send_file
+import logging
+from flask import jsonify, Flask, redirect, request, send_file
 from flask_cors import CORS
 from os.path import exists
 from rq import Queue
@@ -40,7 +41,7 @@ def get_job_metadata(job_id):
 def root():
     """Serve up the documentation for this API.
     """
-    return render_template('index.html')
+    return redirect('http://github.com/qmk/qmk_compiler_api/tree/master/docs')
 
 
 @app.route('/v1', methods=['GET'])
@@ -75,14 +76,23 @@ def GET_v1_compile_job_id(job_id):
     # Check redis first.
     job = rq.fetch_job(job_id)
     if job:
+        if job.is_finished:
+            status = 'finished'
+        elif job.is_queued:
+            status = 'queued'
+        elif job.is_started:
+            status = 'running'
+        elif job.is_failed:
+            status = 'failed'
+        else:
+            logging.error('Unknown job status!')
+            status = 'unknown'
         return jsonify({
             'created_at': job.created_at,
             'enqueued_at': job.enqueued_at,
             'id': job.id,
             'is_failed': job.is_failed,
-            'is_finished': job.is_finished,
-            'is_queued': job.is_queued,
-            'is_started': job.is_started,
+            'status': status,
             'result': job.result
         })
 

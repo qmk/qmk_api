@@ -3,4 +3,31 @@ MINIO_SECRET_KEY='minio_dev_secret'
 
 export MINIO_ACCESS_KEY MINIO_SECRET_KEY
 
-python3 web.py
+# Kill any rq workers we have lying around
+rq_pids=$(ps | awk '!/awk/ && /rq worker -v/ {print $1}')
+if [ -n "$rq_pids" ]; then
+	echo '*** Killing rq workers:' $rq_pids
+	kill $rq_pids
+	sleep 2
+fi
+
+# Start the dev server
+rq worker -v &
+last_start=0
+error_count=0
+while true; do
+        curtime=$(date +%s)
+	delta=$(($curtime - $last_start))
+	if [ $delta -lt 10 ]; then
+		echo "*** Sleeping $delta seconds before restart..."
+		sleep $delta
+	fi
+	last_start=$(date +%s)
+	# Restart the web server if it's a non-clean exit
+	if python3 web.py; then
+		break
+	fi
+done
+
+# Clean up the rq worker
+kill %
