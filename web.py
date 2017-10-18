@@ -103,14 +103,14 @@ def GET_v1_compile_job_id_hex(job_id):
     if not job:
         return error("Compile job not found", 404)
 
-    if job['firmware']:
+    if job['result']['firmware']:
         if STORAGE_ENGINE == 'minio':
-            firmware_file = minio.get_object(MINIO_BUCKET, '/'.join((job_id, job['firmware_filename'])))
-            return send_file(firmware_file, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['firmware_filename'])
+            firmware_file = minio.get_object(MINIO_BUCKET, '/'.join((job_id, job['result']['firmware_filename'])))
+            return send_file(firmware_file, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['result']['firmware_filename'])
         else:
-            filename = '/'.join((FILESYSTEM_PATH, job_id, job['firmware_filename']))
+            filename = '/'.join((FILESYSTEM_PATH, job_id, job['result']['firmware_filename']))
             if exists(filename):
-                return send_file(filename, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['firmware_filename'])
+                return send_file(filename, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['result']['firmware_filename'])
 
     return error("Compile job not finished or other error.", 422)
 
@@ -123,12 +123,12 @@ def GET_v1_compile_job_id_src(job_id):
     if not job:
         return error("Compile job not found", 404)
 
-    if job['firmware']:
+    if job['result']['firmware']:
         if STORAGE_ENGINE == 'minio':
-            firmware_file = minio.get_object(MINIO_BUCKET, '/'.join((job_id, job['source_archive'])))
-            return send_file(firmware_file, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['source_archive'])
+            firmware_file = minio.get_object(MINIO_BUCKET, '/'.join((job_id, job['result']['source_archive'])))
+            return send_file(firmware_file, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['result']['source_archive'])
         else:
-            filename = '/'.join((FILESYSTEM_PATH, job_id, job['firmware_filename']))
+            filename = '/'.join((FILESYSTEM_PATH, job_id, job['result']['firmware_filename']))
             if exists(filename):
                 return send_file(filename, 'application/octet-stream', as_attachment=True, attachment_filename=filename)
 
