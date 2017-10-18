@@ -8,8 +8,7 @@
       "hints",
       "page-toc",
       "terminal",
-      "toolbar",
-      "bulk-redirect"
+      "toolbar"
     ],
     "pluginsConfig": {
       "edit-link": {
