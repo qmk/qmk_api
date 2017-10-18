@@ -2,7 +2,7 @@
 import json
 import requests
 from sys import argv
-from time import sleep
+from time import sleep, strftime
 
 if len(argv) > 1:
     baseurl = argv[1]
@@ -20,6 +20,7 @@ json_data = json.load(open('json_data'))
 compile = http.post(baseurl, json=json_data)
 if compile.status_code in [200, 201]:
     job = compile.json()
+    print('*** Submitted job', job['job_id'], 'at', strftime('%Y-%m-%d %H:%M:%S'))
 else:
     print('*** Could not submit compile job!')
     exit(1)
@@ -43,13 +44,29 @@ while True:
         print('***', 'Download Src: %s/%s/source' % (baseurl, job['job_id']))
         exit(0)
     elif job_status['is_queued']:
-        print('***', 'Waiting since:', job_status['created_at'])
         print('***', 'Status: Queued')
         sleep(2)
     elif job_status['is_started']:
-        print('***', 'Waiting since:', job_status['created_at'])
         print('***', 'Status: Compiling')
-        sleep(2)
+        while True:
+            job_status = http.get(baseurl + '/' + job['job_id'])
+            if job_status.status_code in [200, 201]:
+                job_status = job_status.json()
+            else:
+                print('*** Could not look up job status!')
+                print(job_status.text)
+                exit(2)
+
+            if job_status['is_started']:
+                sleep(2)
+            elif job_status['is_finished']:
+                print('***', 'Compile succeeded!')
+                print('***', 'Download Hex: %s/%s/hex' % (baseurl, job['job_id']))
+                print('***', 'Download Src: %s/%s/source' % (baseurl, job['job_id']))
+                exit(0)
+            else:
+                break
+        break
     else:
         print('*** Unknown job status!')
         print('***', job_status)
