@@ -2,6 +2,8 @@
 
 JSON API for building a customized firmware.
 
+[![Join the chat at https://gitter.im/qmk/qmk_compiler_api](https://badges.gitter.im/qmk/qmk_compiler_api.svg)](https://gitter.im/qmk/qmk_compiler_api?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ## Goals
 
 * Make it easy for apps to compile custom firmware
