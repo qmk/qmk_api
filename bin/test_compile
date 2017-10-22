@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import json
 import requests
-from os import exists
+from os.path import exists
 from sys import argv
 from time import sleep, time
 
@@ -48,20 +48,21 @@ while True:
         print(job_status.text)
         exit(2)
 
-    if job_status['is_failed']:
-        print('***', 'Compile failed!')
+    if job_status['status'] == 'failed':
+        print('*** Compile failed!')
+        print(job_status)
         break
-    elif job_status['is_finished']:
-        print('***', 'Compile succeeded!')
+    elif job_status['status'] == 'finished':
+        print('*** Compile succeeded!')
         print('*** Waited %s seconds for firmware.' % (time()-startTime))
-        print('***', 'Download Hex: %s/%s/hex' % (baseurl, job['job_id']))
-        print('***', 'Download Src: %s/%s/source' % (baseurl, job['job_id']))
+        print('*** Download Hex: %s/%s/hex' % (baseurl, job['job_id']))
+        print('*** Download Src: %s/%s/source' % (baseurl, job['job_id']))
         exit(0)
-    elif job_status['is_queued']:
-        print('***', 'Status: Queued')
+    elif job_status['status'] == 'queued':
+        print('*** Status: Queued')
         sleep(2)
-    elif job_status['is_started']:
-        print('***', 'Status: Compiling')
+    elif job_status['status'] == 'running':
+        print('*** Status: Compiling')
         while True:
             job_status = http.get(baseurl + '/' + job['job_id'])
             if job_status.status_code in [200, 201]:
@@ -71,18 +72,22 @@ while True:
                 print(job_status.text)
                 exit(2)
 
-            if job_status['is_started']:
+            if job_status['status'] == 'running':
                 sleep(2)
-            elif job_status['is_finished']:
-                print('***', 'Compile succeeded!')
+            elif job_status['status'] == 'finished':
+                print('*** Compile succeeded!')
                 print('*** Waited %s seconds for firmware.' % (time()-startTime))
-                print('***', 'Download Hex: %s/%s/hex' % (baseurl, job['job_id']))
-                print('***', 'Download Src: %s/%s/source' % (baseurl, job['job_id']))
+                print('*** Download Hex: %s/%s/hex' % (baseurl, job['job_id']))
+                print('*** Download Src: %s/%s/source' % (baseurl, job['job_id']))
                 exit(0)
+            elif job_status['status'] == 'failed':
+                print('*** Compile failed!')
+                print(job_status)
+                break
             else:
                 break
         break
     else:
         print('*** Unknown job status!')
-        print('***', job_status)
+        print(job_status)
         sleep(2)

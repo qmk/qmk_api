@@ -1,10 +1,14 @@
 import json
 import logging
+import qmk_redis
+import qmk_storage
 from flask import jsonify, Flask, redirect, request, send_file
 from flask_cors import CORS
 from os.path import exists
 from rq import Queue
-from qmk_compiler import STORAGE_ENGINE, FILESYSTEM_PATH, MINIO_BUCKET, compile_firmware, minio, redis
+from qmk_compiler import compile_firmware, redis
+from qmk_storage import get
+from time import strftime
 
 if exists('version.txt'):
     __VERSION__ = open('version.txt').read()
@@ -27,13 +31,8 @@ def error(message, code=400, **kwargs):
 def get_job_metadata(job_id):
     """Fetch a job's metadata from the file store.
     """
-    if STORAGE_ENGINE == 'minio':
-        json_text = minio.get_object(MINIO_BUCKET, '%s/%s.json' % (job_id, job_id))
-        return json.loads(json_text.data.decode('utf-8'))
-    else:
-        json_path = '%s/%s/%s.json' % (FILESYSTEM_PATH, job_id, job_id)
-        if exists(json_path):
-            return json.load(open(json_path))
+    json_text = qmk_storage.get('%s/%s.json' % (job_id, job_id))
+    return json.loads(json_text)
 
 
 ## Views
@@ -52,6 +51,40 @@ def GET_v1():
         'status': 'running',
         'version': __VERSION__
     })
+
+
+@app.route('/v1/keyboards', methods=['GET'])
+def GET_v1_keyboards():
+    """Return a list of keyboards
+    """
+    json_blob = qmk_redis.get('qmk_api_keyboards')
+    return jsonify(json_blob)
+
+
+@app.route('/v1/keyboards/all', methods=['GET'])
+def GET_v1_keyboards_all():
+    """Return JSON showing all available keyboards and their layouts.
+    """
+    allkb = qmk_redis.get('qmk_api_kb_all')
+    if allkb:
+        return jsonify(allkb)
+    return error('An unknown error occured', 500)
+
+
+@app.route('/v1/keyboards/<path:keyboard>', methods=['GET'])
+def GET_v1_keyboards_keyboard(keyboard):
+    """Return JSON showing data about a keyboard
+    """
+    keyboards = {'generated_at': strftime('%Y-%m-%d %H:%M:%S %Z'), 'keyboards': {}}
+    for kb in keyboard.split(','):
+        kb_data = qmk_redis.get('qmk_api_kb_'+kb)
+        if kb_data:
+            keyboards['keyboards'][kb] = kb_data
+
+    if not keyboards['keyboards']:
+        return error('No such keyboard: ' + keyboard, 404)
+
+    return jsonify(keyboards)
 
 
 @app.route('/v1/compile', methods=['POST'])
@@ -114,13 +147,7 @@ def GET_v1_compile_job_id_hex(job_id):
         return error("Compile job not found", 404)
 
     if job['result']['firmware']:
-        if STORAGE_ENGINE == 'minio':
-            firmware_file = minio.get_object(MINIO_BUCKET, '/'.join((job_id, job['result']['firmware_filename'])))
-            return send_file(firmware_file, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['result']['firmware_filename'])
-        else:
-            filename = '/'.join((FILESYSTEM_PATH, job_id, job['result']['firmware_filename']))
-            if exists(filename):
-                return send_file(filename, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['result']['firmware_filename'])
+        return send_file(job['result']['firmware'], mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['result']['firmware_filename'])
 
     return error("Compile job not finished or other error.", 422)
 
@@ -134,13 +161,8 @@ def GET_v1_compile_job_id_src(job_id):
         return error("Compile job not found", 404)
 
     if job['result']['firmware']:
-        if STORAGE_ENGINE == 'minio':
-            firmware_file = minio.get_object(MINIO_BUCKET, '/'.join((job_id, job['result']['source_archive'])))
-            return send_file(firmware_file, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['result']['source_archive'])
-        else:
-            filename = '/'.join((FILESYSTEM_PATH, job_id, job['result']['firmware_filename']))
-            if exists(filename):
-                return send_file(filename, 'application/octet-stream', as_attachment=True, attachment_filename=filename)
+        source_zip = qmk_storage.get('%(id)s/%(source_archive)s' % job['result'])
+        return send_file(source_zip, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['result']['source_archive'])
 
     return error("Compile job not finished or other error.", 422)
 

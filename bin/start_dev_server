@@ -19,8 +19,8 @@ while true; do
         curtime=$(date +%s)
 	delta=$(($curtime - $last_start))
 	if [ $delta -lt 10 ]; then
-		echo "*** Sleeping $delta seconds before restart..."
-		sleep $delta
+		echo "*** Sleeping $((10 - $delta)) seconds before restart..."
+		sleep $((10 - $delta))
 	fi
 	last_start=$(date +%s)
 	# Restart the web server if it's a non-clean exit
