@@ -35,7 +35,11 @@ if compile.status_code in [200, 201]:
     job = compile.json()
     print('*** Submitted job', job['job_id'])
 else:
-    print('*** Could not submit compile job!')
+    print('*** Could not submit compile job to %s! Code: %s' % (compile.url, compile.status_code))
+    for header in sorted(compile.headers):
+        print('%s: %s' % (header, compile.headers[header]))
+    print()
+    print(compile.content.decode(compile.encoding))
     exit(1)
 
 # Watch the progress of our compile job
@@ -44,9 +48,12 @@ while True:
     if job_status.status_code in [200, 201]:
         job_status = job_status.json()
     else:
-        print('*** Could not look up job status!')
-        print(job_status.text)
-        exit(2)
+        print('*** Could not look up job status at %s! Code: %s' % (job_status.url, job_status.status_code))
+        for header in sorted(job_status.headers):
+            print('%s: %s' % (header, job_status.headers[header]))
+        print()
+        print(job_status.content.decode(compile.encoding))
+        exit(1)
 
     if job_status['status'] == 'failed':
         print('*** Compile failed!')
@@ -68,8 +75,11 @@ while True:
             if job_status.status_code in [200, 201]:
                 job_status = job_status.json()
             else:
-                print('*** Could not look up job status!')
-                print(job_status.text)
+                print('*** Could not look up job status at %s! Code: %s' % (job_status.url, job_status.status_code))
+                for header in sorted(job_status.headers):
+                    print('%s: %s' % (header, job_status.headers[header]))
+                print()
+                print(job_status.content.decode(compile.encoding))
                 exit(2)
 
             if job_status['status'] == 'running':
