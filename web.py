@@ -127,7 +127,7 @@ def GET_v1_compile_job_id(job_id):
             'created_at': job.created_at,
             'enqueued_at': job.enqueued_at,
             'id': job.id,
-            'is_failed': job.is_failed or job.result.get('returncode') != 0,
+            'is_failed': job.is_failed or (job.result and job.result.get('returncode') != 0),
             'status': status,
             'result': job.result
         })
