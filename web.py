@@ -75,7 +75,10 @@ def GET_v1_keyboards_all():
 def GET_v1_keyboards_keyboard(keyboard):
     """Return JSON showing data about a keyboard
     """
-    keyboards = {'generated_at': strftime('%Y-%m-%d %H:%M:%S %Z'), 'keyboards': {}}
+    keyboards = {
+        'last_updated': qmk_redis.get('qmk_api_last_updated'),
+        'keyboards': {}
+    }
     for kb in keyboard.split(','):
         kb_data = qmk_redis.get('qmk_api_kb_'+kb)
         if kb_data:
