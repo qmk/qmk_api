@@ -186,15 +186,14 @@ def POST_v1_converters_kle():
 
     keyboard = OrderedDict(
         keyboard_name=kle.name,
-        keyboard_folder='',
         manufacturer='',
         identifier='',
         url='',
         maintainer='qmk',
         processor='',
         bootloader='',
-        width=int(kle.columns),
-        height=int(kle.rows),
+        width=kle.columns,
+        height=kle.rows,
         layout={'LAYOUT': {'layout': 'LAYOUT_JSON_HERE'}}
     )
     keyboard = json.dumps(keyboard, indent=4, separators=(', ', ': '), cls=CustomJSONEncoder)
