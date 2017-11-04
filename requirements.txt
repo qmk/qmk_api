@@ -3,3 +3,4 @@ rq<0.9.0
 flask
 flask-cors
 gunicorn
+requests
