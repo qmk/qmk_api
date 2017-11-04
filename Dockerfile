@@ -17,6 +17,7 @@ WORKDIR /
 RUN git clone https://github.com/qmk/qmk_compiler_api.git
 WORKDIR /qmk_compiler_api
 RUN pip3 install git+git://github.com/qmk/qmk_compiler_worker.git@master
+RUN pip3 install git+git://github.com/skullydazed/kle2xy.git@master
 RUN pip3 install -r requirements.txt
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
