@@ -1,13 +1,10 @@
-FROM debian
+FROM python:3.6
 MAINTAINER Zach White <skullydazed@gmail.com>
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
     build-essential \
     gcc \
     git \
-    python3 \
-    python3-pip \
-    python3-setuptools \
     unzip \
     wget \
     zip \
