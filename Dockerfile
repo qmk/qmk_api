@@ -1,15 +1,6 @@
 FROM python:3.6
 MAINTAINER Zach White <skullydazed@gmail.com>
 
-RUN apt-get update && apt-get install --no-install-recommends -y \
-    build-essential \
-    gcc \
-    git \
-    unzip \
-    wget \
-    zip \
-    && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /
 RUN git clone https://github.com/qmk/qmk_compiler_api.git
 WORKDIR /qmk_compiler_api
