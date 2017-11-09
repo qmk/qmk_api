@@ -196,7 +196,7 @@ def POST_v1_converters_kle():
         height=kle.rows,
         layout={'LAYOUT': {'layout': 'LAYOUT_JSON_HERE'}}
     )
-    keyboard = json.dumps(keyboard, indent=4, separators=(', ', ': '), cls=CustomJSONEncoder)
+    keyboard = json.dumps(keyboard, indent=4, separators=(', ', ': '), sort_keys=False, cls=CustomJSONEncoder)
     layout = json.dumps(kle_to_qmk(kle), separators=(', ', ':'), cls=CustomJSONEncoder)
     keyboard = keyboard.replace('"LAYOUT_JSON_HERE"', layout)
     response = make_response(keyboard)
