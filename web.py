@@ -242,6 +242,14 @@ def GET_v1_keyboards_keyboard(keyboard):
     return jsonify(keyboards)
 
 
+@app.route('/v1/keyboards/error_log', methods=['GET'])
+def GET_v1_keyboards_error_log():
+    """Return the error log from the last run.
+    """
+    json_blob = qmk_redis.get('qmk_api_update_error_log')
+    return jsonify(json_blob)
+
+
 @app.route('/v1/compile', methods=['POST'])
 def POST_v1_compile():
     """Enqueue a compile job.
