@@ -3,3 +3,4 @@
   * [Hacking On The API](development_overview.md)
 * [Using The API](api_docs.md)
 * [Keyboard Support](keyboard_support.md)
+* [Error Log](error_log.md)
