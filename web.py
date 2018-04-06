@@ -227,13 +227,40 @@ def GET_v1_keyboards_all():
 def GET_v1_keyboards_keyboard(keyboard):
     """Return JSON showing data about a keyboard
     """
-    keyboards = {
-        'last_updated': qmk_redis.get('qmk_api_last_updated'),
-        'keyboards': {}
-    }
+    keyboards = qmk_redis.get('qmk_api_last_updated')
+    keyboards['keyboards'] = {}
+
     for kb in keyboard.split(','):
         kb_data = qmk_redis.get('qmk_api_kb_'+kb)
         if kb_data:
+            keyboards['keyboards'][kb] = kb_data
+
+    if not keyboards['keyboards']:
+        return error('No such keyboard: ' + keyboard, 404)
+
+    return jsonify(keyboards)
+
+
+@app.route('/v1/keyboards/<path:keyboard>/keymaps/<string:keymap>', methods=['GET'])
+def GET_v1_keyboards_keyboard_keymaps_keymap(keyboard, keymap):
+    """Return JSON showing data about a keyboard's keymap
+    """
+    keyboards = qmk_redis.get('qmk_api_last_updated')
+    keyboards['keyboards'] = {}
+
+    for kb in keyboard.split(','):
+        kb_data = qmk_redis.get('qmk_api_kb_'+kb)
+        if kb_data:
+            keymaps = {}
+            keymap_list = kb_data['keymaps'] if keymap == 'all' else keymap.split(',')
+
+            for km in keymap_list:
+                keymaps[km]  = qmk_redis.get('qmk_api_kb_%s_keymap_%s' % (kb, km))
+
+            if not keymaps:
+                return error('No such keymap: ' + keymap, 404)
+
+            kb_data['keymaps'] = keymaps
             keyboards['keyboards'][kb] = kb_data
 
     if not keyboards['keyboards']:
