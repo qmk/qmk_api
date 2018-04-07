@@ -163,6 +163,7 @@ def GET_v1_converters():
     return jsonify({'children': ['kle']})
 
 
+@app.route('/v1/converters/kle2qmk', methods=['POST'])
 @app.route('/v1/converters/kle', methods=['POST'])
 def POST_v1_converters_kle():
     """Convert a KLE layout to QMK's layout format.
@@ -188,11 +189,8 @@ def POST_v1_converters_kle():
 
     keyboard = OrderedDict(
         keyboard_name=kle.name,
-        manufacturer='',
-        identifier='',
         url='',
         maintainer='qmk',
-        processor='',
         bootloader='',
         width=kle.columns,
         height=kle.rows,
