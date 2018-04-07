@@ -1,5 +1,7 @@
 import json
 import logging
+from io import StringIO, BytesIO
+
 import qmk_redis
 import qmk_storage
 import requests
@@ -337,7 +339,8 @@ def GET_v1_compile_job_id_hex(job_id):
         return error("Compile job not found", 404)
 
     if job['result']['firmware']:
-        return send_file(job['result']['firmware'], mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['result']['firmware_filename'])
+        firmware = BytesIO(job['result']['firmware'].encode('UTF-8'))
+        return send_file(firmware, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['result']['firmware_filename'])
 
     return error("Compile job not finished or other error.", 422)
 
