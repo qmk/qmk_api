@@ -1,7 +1,7 @@
-MINIO_ACCESS_KEY='minio_dev'
-MINIO_SECRET_KEY='minio_dev_secret'
+S3_ACCESS_KEY='minio_dev'
+S3_SECRET_KEY='minio_dev_secret'
 
-export MINIO_ACCESS_KEY MINIO_SECRET_KEY
+export S3_ACCESS_KEY S3_SECRET_KEY
 
 # Kill any rq workers we have lying around
 rq_pids=$(ps | awk '!/awk/ && /rq worker -v/ {print $1}')
