@@ -30,7 +30,7 @@
       "toolbar": {
         "buttons": [
           {
-            "label": "QMK Compiler",
+            "label": "QMK API",
             "icon": "fa fa-github",
             "url": "https://github.com/qmk/qmk_compiler_api"
           }

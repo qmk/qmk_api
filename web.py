@@ -376,7 +376,7 @@ def GET_v1_compile_job_id_src(job_id):
         return error("Compile job not found", 404)
 
     if job['result']['firmware']:
-        source_zip = qmk_storage.get('%(id)s/%(source_archive)s' % job['result'])
+        source_zip = qmk_storage.get_fd('%(id)s/%(source_archive)s' % job['result'])
         return send_file(source_zip, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['result']['source_archive'])
 
     return error("Compile job not finished or other error.", 422)
