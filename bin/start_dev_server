@@ -1,7 +1,15 @@
+# For local dev
 S3_ACCESS_KEY='minio_dev'
 S3_SECRET_KEY='minio_dev_secret'
 
-export S3_ACCESS_KEY S3_SECRET_KEY
+# To test against S3 or DO Spaces
+#S3_HOST="https://nyc3.digitaloceanspaces.com"
+#S3_ACCESS_KEY=""
+#S3_SECRET_KEY=""
+#S3_BUCKET=""
+#S3_LOCATION="nyc3"
+
+export S3_HOST S3_ACCESS_KEY S3_SECRET_KEY S3_BUCKET S3_LOCATION
 
 # Kill any rq workers we have lying around
 rq_pids=$(ps | awk '!/awk/ && /rq worker -v/ {print $1}')
