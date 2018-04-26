@@ -1,25 +1,24 @@
 import json
 import logging
-from io import StringIO, BytesIO
+from decimal import Decimal
+from io import BytesIO
+from os.path import exists
+from os import stat, remove, makedirs
+from time import strftime, time, localtime
 
-import qmk_redis
-import qmk_storage
 import requests
 from collections import OrderedDict
 from codecs import open as copen
-
-from decimal import Decimal
 from flask import jsonify, Flask, redirect, request, send_file
 from flask import make_response
 from flask.json import JSONEncoder
 from flask_cors import CORS
-from os.path import exists
-from os import stat, remove, makedirs
 from rq import Queue
-from qmk_compiler import compile_firmware, redis
-from time import strftime, time, localtime
 
+import qmk_redis
+import qmk_storage
 from kle2xy import KLE2xy
+from qmk_compiler import compile_firmware, redis, ping
 
 if exists('version.txt'):
     __VERSION__ = open('version.txt').read()
@@ -151,6 +150,28 @@ def GET_v1():
     """
     return jsonify({
         'children': ['compile', 'converters', 'keyboards'],
+        'last_ping': qmk_redis.get('qmk_api_last_ping'),
+        'queue_length': len(rq),
+        'status': 'running',
+        'version': __VERSION__
+    })
+
+
+@app.route('/v1/healthcheck', methods=['GET'])
+def GET_v1_healthcheck():
+    """Checks over the health of the API.
+
+    Note: This is used for operational purposes. Please don't hit it on the
+    live api.qmk.fm site without talking to us first. Most of this
+    information is available at the /v1 endpoint as well.
+    """
+    rq.enqueue(ping, at_front=True)
+
+    return jsonify({
+        'last_ping': qmk_redis.get('qmk_api_last_ping'),
+        'queue_length': len(rq),
+        'queued_job_ids':  rq.job_ids,
+        'queued_jobs': rq.jobs,
         'status': 'running',
         'version': __VERSION__
     })
