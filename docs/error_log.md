@@ -20,7 +20,7 @@ If QMK API does not find the `LAYOUT()` macro in one of those files it will look
 
 To eliminate this message move the `LAYOUT()` macro to the proper `<subdirN>.h` file, per the convention listed above.
 
-## Missing layout pp macro for <LAYOUT>
+## Missing layout pp macro for &lt;LAYOUT&gt;
 
 This error occurs when QMK API is not able to locate a `LAYOUT()` macro for the keyboard, or when an alias for a `LAYOUT()` macro was defined but the macro itself was not found. To correct it make sure the `LAYOUT()` macros and all aliases for those macros are defined in the `<subdirN>/<subdirN>.h` file.
 
@@ -38,14 +38,14 @@ As you can see that depicts a keyboard that is not physically possible to build.
 
 When your PCB supports multiple layouts like this the recommended practice is to have the `LAYOUT()` macro support all keys, as shown with the Clueboard, and to define layouts matching different physical builds, for example ISO or ANSI. If your keyboard supports any of QMK's community layouts you should define macros matching those as well.
 
-## <filename> is invalid JSON!
+## &lt;filename&gt; is invalid JSON!
 
 This message occurs when a malformed `info.json` is checked into [`qmk_firmware`](https://github.com/qmk/qmk_firmware). To correct it use a JSON linting tool to locate and fix the bad JSON.
 
-## <filename> is invalid! Should be a JSON dict object!
+## &lt;filename&gt; is invalid! Should be a JSON dict object!
 
 This message occurs when an `info.json` uses something besides a dictionary as the root object. To correct it make sure that a single JSON dictionary is the root object.
 
-# Error encountered processing <filename>
+# Error encountered processing &lt;filename&gt;
 
 This occurs when an error we didn't anticipate occurs. Sometimes you can figure out what's wrong from the message, but if not you should hop on gitter and we'll help you figure out what's going on (and maybe fix our bug ;).
