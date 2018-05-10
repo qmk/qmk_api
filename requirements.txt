@@ -4,3 +4,4 @@ flask-cors
 gunicorn
 requests
 rq<0.9.0
+sparse_list
