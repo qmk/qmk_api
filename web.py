@@ -3,7 +3,7 @@ import logging
 from decimal import Decimal
 from io import BytesIO
 from os.path import exists
-from os import stat, remove, makedirs
+from os import stat, remove, makedirs, environ
 from time import strftime, time, localtime
 
 import requests
@@ -19,11 +19,14 @@ import qmk_redis
 import qmk_storage
 from kle2xy import KLE2xy
 from qmk_compiler import compile_firmware, redis, ping
+from update_kb_redis import update_kb_redis
 
 if exists('version.txt'):
     __VERSION__ = open('version.txt').read()
 else:
     __VERSION__ = '__UNKNOWN__'
+
+UPDATE_API=environ.get('UPDATE_API', 'false') == 'true'
 
 
 ## Classes
@@ -141,7 +144,7 @@ def kle_to_qmk(kle):
 def root():
     """Serve up the documentation for this API.
     """
-    return redirect('https://docs.compile.qmk.fm/')
+    return redirect('https://docs.api.qmk.fm/')
 
 
 @app.route('/v1', methods=['GET'])
@@ -175,6 +178,26 @@ def GET_v1_healthcheck():
         'status': 'running',
         'version': __VERSION__
     })
+
+
+@app.route('/v1/update', methods=['GET'])
+def GET_v1_update():
+    """Triggers an update of the API.
+    """
+    result = {
+        'result': UPDATE_API,
+        'last_ping': qmk_redis.get('qmk_api_last_ping'),
+        'queue_length': len(rq),
+        'queued_job_ids':  rq.job_ids,
+        'queued_jobs': rq.jobs,
+        'status': 'running',
+        'version': __VERSION__
+    }
+
+    if UPDATE_API:
+        rq.enqueue(update_kb_redis)
+
+    return jsonify(result)
 
 
 @app.route('/v1/converters', methods=['GET'])
