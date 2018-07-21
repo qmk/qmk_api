@@ -189,7 +189,6 @@ def GET_v1_update():
         'last_ping': qmk_redis.get('qmk_api_last_ping'),
         'queue_length': len(rq),
         'queued_job_ids':  rq.job_ids,
-        'queued_jobs': rq.jobs,
         'status': 'running',
         'version': __VERSION__
     }
