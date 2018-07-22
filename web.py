@@ -336,6 +336,15 @@ def GET_v1_keyboards_keyboard_keymaps_keymap_readme(keyboard, keymap):
     return response
 
 
+@app.route('/v1/keyboards/build_status', methods=['GET'])
+def GET_v1_keyboards_build_status():
+    """Returns a dictionary of keyboard/layout pairs. Each entry is True if the keyboard works in configurator and
+    false if it doesn't.
+    """
+    json_blob = qmk_redis.get('qmk_api_keyboards_tested')
+    return jsonify(json_blob)
+
+
 @app.route('/v1/keyboards/error_log', methods=['GET'])
 def GET_v1_keyboards_error_log():
     """Return the error log from the last run.
