@@ -345,6 +345,24 @@ def GET_v1_keyboards_build_status():
     return jsonify(json_blob)
 
 
+@app.route('/v1/keyboards/build_log', methods=['GET'])
+def GET_v1_keyboards_build_log():
+    """Returns a dictionary of keyboard/layout pairs. Each entry is a dictionary with the following keys:
+
+    * `works`: Boolean indicating whether the compile was successful
+    * `message`: The compile output for failed builds
+    """
+    json_data = {}
+    failed = qmk_redis.get('qmk_api_keyboards_failed')
+
+    for name, keyboard in qmk_redis.get('qmk_api_keyboards_tested').values:
+        json_data[name] = {'works': keyboard, 'message': 'Keyboard compiled successfully.' if keyboard else 'Unknown compile error!'}
+        if name in failed:
+            json_data[name]['message'] = failed[name]['message']
+
+    return jsonify(json_data)
+
+
 @app.route('/v1/keyboards/error_log', methods=['GET'])
 def GET_v1_keyboards_error_log():
     """Return the error log from the last run.
