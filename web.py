@@ -355,7 +355,7 @@ def GET_v1_keyboards_build_log():
     json_data = {}
     failed = qmk_redis.get('qmk_api_keyboards_failed')
 
-    for name, keyboard in qmk_redis.get('qmk_api_keyboards_tested').values:
+    for name, keyboard in qmk_redis.get('qmk_api_keyboards_tested').items():
         json_data[name] = {'works': keyboard, 'message': 'Keyboard compiled successfully.' if keyboard else 'Unknown compile error!'}
         if name in failed:
             json_data[name]['message'] = failed[name]['message']
