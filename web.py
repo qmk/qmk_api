@@ -369,9 +369,6 @@ def GET_v1_keyboards_error_log():
     """
     json_blob = qmk_redis.get('qmk_api_update_error_log')
 
-    for failed_keyboard in qmk_redis.get('qmk_api_keyboards_failed').values():
-        json_blob.append(failed_keyboard)
-
     return jsonify(json_blob)
 
 
