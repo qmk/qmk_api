@@ -426,17 +426,20 @@ def GET_v1_compile_job_id(job_id):
     return error("Compile job not found", 404)
 
 
+@app.route('/v1/compile/<string:job_id>/download', methods=['GET'])
 @app.route('/v1/compile/<string:job_id>/hex', methods=['GET'])
-def GET_v1_compile_job_id_hex(job_id):
-    """Download a compiled firmware
+def GET_v1_compile_job_id_bin(job_id):
+    """Download a compiled firmware.
+
+    New clients should prefer the `/download` URL. `/hex` is deprecated and will be removed in a future version.
     """
     job = get_job_metadata(job_id)
     if not job:
         return error("Compile job not found", 404)
 
-    if job['result']['firmware']:
-        firmware = BytesIO(job['result']['firmware'].encode('UTF-8'))
-        return send_file(firmware, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['result']['firmware_filename'])
+    if 'firmware_filename' in job['result']:
+        firmware = qmk_storage.get_fd('%(id)s/%(firmware_filename)s' % job['result'])
+        return send_file(firmware, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['result']['source_archive'])
 
     return error("Compile job not finished or other error.", 422)
 
