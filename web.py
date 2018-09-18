@@ -436,7 +436,7 @@ def GET_v1_compile_job_id_bin(job_id):
 
     if 'firmware_filename' in job['result']:
         firmware = qmk_storage.get_fd('%(id)s/%(firmware_filename)s' % job['result'])
-        return send_file(firmware, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['result']['source_archive'])
+        return send_file(firmware, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['result']['firmware_filename'])
 
     return error("Compile job not finished or other error.", 422)
 
