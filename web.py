@@ -352,14 +352,7 @@ def GET_v1_keyboards_build_log():
     * `works`: Boolean indicating whether the compile was successful
     * `message`: The compile output for failed builds
     """
-    json_data = {}
-    failed = qmk_redis.get('qmk_api_keyboards_failed')
-
-    for name, keyboard in qmk_redis.get('qmk_api_keyboards_tested').items():
-        json_data[name] = {'works': keyboard, 'message': 'Keyboard compiled successfully.' if keyboard else 'Unknown compile error!'}
-        if name in failed:
-            json_data[name]['message'] = failed[name]['message']
-
+    json_data = qmk_redis.get('qmk_api_configurator_status')
     return jsonify(json_data)
 
 
