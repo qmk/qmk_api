@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+import json
+import random
+
+import requests
+from sys import argv
+from time import sleep, time
+
+print(len(argv))
+if 4 < len(argv) < 2:
+    print('Usage: %s <keyboard> [base_url]' % argv[0])
+    exit(1)
+else:
+    keyboard = argv[1]
+
+baseurl = argv[2] if len(argv) > 2 else 'http://127.0.0.1:5000/v1'
+compile_url = '/'.join((baseurl, 'compile'))
+http = requests.Session()
+http.headers.update({'Accept': 'application/json'})
+http.headers.update({'User-Agent': 'qmk_compile_api test client v0.1'})
+
+# Pull down info about the keyboard
+metadata = http.get('/'.join((baseurl, 'keyboards', keyboard))).json()
+metadata = metadata['keyboards'][keyboard]
+if not metadata['layouts']:
+    print('No available layouts for %s!' % keyboard)
+    exit(1)
+
+# Prepare our request
+layout_macro = random.choice(list(metadata['layouts']))
+layout = list(map(lambda x:'KC_NO', metadata['layouts'][layout_macro]['layout']))
+layers = [layout, list(map(lambda x: 'KC_TRNS', layout))]
+json_data = {
+    'keyboard': keyboard,
+    'keymap': 'test_keyboard_keymap',
+    'layout': layout_macro,
+    'layers': layers,
+}
+
+# Post our compile job to the API
+startTime = time()
+compile = http.post(compile_url, json=json_data)
+if compile.status_code in [200, 201]:
+    job = compile.json()
+    print('*** Submitted job', job['job_id'])
+else:
+    print('*** Could not submit compile job to %s! Code: %s' % (compile.url, compile.status_code))
+    for header in sorted(compile.headers):
+        print('%s: %s' % (header, compile.headers[header]))
+    print()
+    print(compile.content.decode(compile.encoding))
+    exit(1)
+
+# Watch the progress of our compile job
+while True:
+    job_status = http.get(compile_url + '/' + job['job_id'])
+    if job_status.status_code in [200, 201]:
+        job_status = job_status.json()
+    else:
+        print('*** Could not look up job status at %s! Code: %s' % (job_status.url, job_status.status_code))
+        for header in sorted(job_status.headers):
+            print('%s: %s' % (header, job_status.headers[header]))
+        print()
+        print(job_status.content.decode(compile.encoding))
+        exit(1)
+
+    if job_status['status'] == 'failed':
+        print('*** Compile failed!')
+        print(job_status)
+        break
+    elif job_status['status'] == 'finished':
+        print('*** Compile succeeded!')
+        print('*** Waited %s seconds for firmware.' % (time()-startTime))
+        print('*** Download Hex: %s/%s/hex' % (compile_url, job['job_id']))
+        print('*** Download Src: %s/%s/source' % (compile_url, job['job_id']))
+        exit(0)
+    elif job_status['status'] == 'queued':
+        print('*** Status: Queued')
+        sleep(2)
+    elif job_status['status'] == 'running':
+        print('*** Status: Compiling')
+        while True:
+            job_status = http.get(compile_url + '/' + job['job_id'])
+            if job_status.status_code in [200, 201]:
+                job_status = job_status.json()
+            else:
+                print('*** Could not look up job status at %s! Code: %s' % (job_status.url, job_status.status_code))
+                for header in sorted(job_status.headers):
+                    print('%s: %s' % (header, job_status.headers[header]))
+                print()
+                print(job_status.content.decode(compile.encoding))
+                exit(2)
+
+            if job_status['status'] == 'running':
+                sleep(2)
+            elif job_status['status'] == 'finished':
+                print('*** Compile succeeded!')
+                print('*** Waited %s seconds for firmware.' % (time()-startTime))
+                print('*** Download Hex: %s/%s/hex' % (compile_url, job['job_id']))
+                print('*** Download Src: %s/%s/source' % (compile_url, job['job_id']))
+                exit(0)
+            elif job_status['status'] == 'failed':
+                print('*** Compile failed!')
+                print(job_status)
+                break
+            else:
+                break
+        break
+    else:
+        print('*** Unknown job status!')
+        print(job_status)
+        sleep(2)
