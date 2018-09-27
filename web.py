@@ -1,14 +1,14 @@
 import json
 import logging
 from decimal import Decimal
-from io import BytesIO
 from os.path import exists
 from os import stat, remove, makedirs, environ
 from time import strftime, time, localtime
 
-import requests
 from collections import OrderedDict
 from codecs import open as copen
+
+import requests
 from flask import jsonify, Flask, redirect, request, send_file
 from flask import make_response
 from flask.json import JSONEncoder
@@ -26,10 +26,10 @@ if exists('version.txt'):
 else:
     __VERSION__ = '__UNKNOWN__'
 
-UPDATE_API=environ.get('UPDATE_API', 'false') == 'true'
+UPDATE_API = environ.get('UPDATE_API', 'false') == 'true'
 
 
-## Classes
+# Classes
 class CustomJSONEncoder(JSONEncoder):
     def default(self, obj):
         try:
@@ -52,7 +52,7 @@ cors = CORS(app, resources={'/v*/*': {'origins': '*'}})
 rq = Queue(connection=redis)
 
 
-## Helper functions
+# Helper functions
 def error(message, code=400, **kwargs):
     """Return a structured JSON error message.
     """
@@ -85,13 +85,19 @@ def fetch_kle_json(gist_id):
             logging.info('Using cache file %s (%s < 30)', cache_file, file_age)
             return copen(cache_file, encoding='UTF-8').read()
         else:
-            headers['If-Modified-Since'] = strftime('%a, %d %b %Y %H:%M:%S %Z', localtime(file_stat.st_mtime))
-            logging.warning('Adding If-Modified-Since: %s to headers.', headers['If-Modified-Since'])
+            headers['If-Modified-Since'] = strftime(
+                '%a, %d %b %Y %H:%M:%S %Z',
+                localtime(file_stat.st_mtime))
+            logging.warning(
+                'Adding If-Modified-Since: %s to headers.',
+                headers['If-Modified-Since'])
 
     keyboard = requests.get(gist_url % gist_id, headers=headers)
 
     if keyboard.status_code == 304:
-        logging.debug("Source for %s hasn't changed, loading from disk.", cache_file)
+        logging.debug(
+            "Source for %s hasn't changed, loading from disk.",
+            cache_file)
         return copen(cache_file, encoding='UTF-8').read()
 
     keyboard = keyboard.json()
@@ -139,7 +145,7 @@ def kle_to_qmk(kle):
     return layout
 
 
-## Views
+# Views
 @app.route('/', methods=['GET'])
 def root():
     """Serve up the documentation for this API.
@@ -174,7 +180,7 @@ def GET_v1_healthcheck():
         'last_ping': qmk_redis.get('qmk_api_last_ping'),
         'queue_length': len(rq),
         'queued_job_ids':  rq.job_ids,
-        'queued_jobs': rq.jobs,
+        'queued_jobs': repr(rq.jobs),
         'status': 'running',
         'version': __VERSION__
     })
@@ -228,7 +234,8 @@ def POST_v1_converters_kle():
     except Exception as e:
         logging.error('Could not parse KLE raw data: %s', raw_code)
         logging.exception(e)
-        return error('Could not parse KLE raw data.')  # FIXME: This should be better
+        # FIXME: This should be better
+        return error('Could not parse KLE raw data.')
 
     keyboard = OrderedDict(
         keyboard_name=kle.name,
@@ -239,8 +246,10 @@ def POST_v1_converters_kle():
         height=kle.rows,
         layouts={'LAYOUT': {'layout': 'LAYOUT_JSON_HERE'}}
     )
-    keyboard = json.dumps(keyboard, indent=4, separators=(', ', ': '), sort_keys=False, cls=CustomJSONEncoder)
-    layout = json.dumps(kle_to_qmk(kle), separators=(', ', ':'), cls=CustomJSONEncoder)
+    keyboard = json.dumps(keyboard, indent=4, separators=(', ', ': '),
+                          sort_keys=False, cls=CustomJSONEncoder)
+    layout = json.dumps(kle_to_qmk(kle), separators=(', ', ':'),
+                        cls=CustomJSONEncoder)
     keyboard = keyboard.replace('"LAYOUT_JSON_HERE"', layout)
     response = make_response(keyboard)
     response.mimetype = app.config['JSONIFY_MIMETYPE']
@@ -307,10 +316,15 @@ def GET_v1_keyboards_keyboard_keymaps_keymap(keyboard, keymap):
         kb_data = qmk_redis.get('qmk_api_kb_'+kb)
         if kb_data:
             keymaps = {}
-            keymap_list = kb_data['keymaps'] if keymap == 'all' else keymap.split(',')
+            if keymap == 'all':
+                keymap_list = kb_data['keymaps']
+            else:
+                keymap.split(',')
 
             for km in keymap_list:
-                keymaps[km]  = qmk_redis.get('qmk_api_kb_%s_keymap_%s' % (kb, km))
+                keymaps[km] = qmk_redis.get(
+                    'qmk_api_kb_{}_keymap_{}'.format(kb, km)
+                    )
 
             if not keymaps:
                 return error('No such keymap: ' + keymap, 404)
@@ -328,7 +342,9 @@ def GET_v1_keyboards_keyboard_keymaps_keymap(keyboard, keymap):
 def GET_v1_keyboards_keyboard_keymaps_keymap_readme(keyboard, keymap):
     """Returns the readme for a keymap.
     """
-    readme = qmk_redis.get('qmk_api_kb_%s_keymap_%s_readme' % (keyboard, keymap))
+    readme = qmk_redis.get(
+        'qmk_api_kb_{}_keymap_{}_readme'.format(keyboard, keymap)
+        )
 
     response = make_response(readme)
     response.mimetype = 'text/markdown'
@@ -338,8 +354,10 @@ def GET_v1_keyboards_keyboard_keymaps_keymap_readme(keyboard, keymap):
 
 @app.route('/v1/keyboards/build_status', methods=['GET'])
 def GET_v1_keyboards_build_status():
-    """Returns a dictionary of keyboard/layout pairs. Each entry is True if the keyboard works in configurator and
-    false if it doesn't.
+    """Returns a dictionary of keyboard/layout pairs.
+
+    Each entry is True if the keyboard works in configurator and false if it
+    doesn't.
     """
     json_blob = qmk_redis.get('qmk_api_keyboards_tested')
     return jsonify(json_blob)
@@ -347,8 +365,9 @@ def GET_v1_keyboards_build_status():
 
 @app.route('/v1/keyboards/build_log', methods=['GET'])
 def GET_v1_keyboards_build_log():
-    """Returns a dictionary of keyboard/layout pairs. Each entry is a dictionary with the following keys:
+    """Returns a dictionary of keyboard/layout pairs.
 
+    Each entry is a dictionary with the following keys:
     * `works`: Boolean indicating whether the compile was successful
     * `message`: The compile output for failed builds
     """
@@ -376,7 +395,12 @@ def POST_v1_compile():
     if '.' in data['keyboard'] or '/' in data['keymap']:
         return error("Fuck off hacker.", 422)
 
-    job = compile_firmware.delay(data['keyboard'], data['keymap'], data['layout'], data['layers'])
+    job = compile_firmware.delay(
+        data['keyboard'],
+        data['keymap'],
+        data['layout'],
+        data['layers']
+        )
     return jsonify({'enqueued': True, 'job_id': job.id})
 
 
@@ -402,7 +426,8 @@ def GET_v1_compile_job_id(job_id):
             'created_at': job.created_at,
             'enqueued_at': job.enqueued_at,
             'id': job.id,
-            'is_failed': job.is_failed or (job.result and job.result.get('returncode') != 0),
+            'is_failed': (job.is_failed or
+                          (job.result and job.result.get('returncode') != 0)),
             'status': status,
             'result': job.result
         })
@@ -421,7 +446,8 @@ def GET_v1_compile_job_id(job_id):
 def GET_v1_compile_job_id_bin(job_id):
     """Download a compiled firmware.
 
-    New clients should prefer the `/download` URL. `/hex` is deprecated and will be removed in a future version.
+    New clients should prefer the `/download` URL. `/hex` is deprecated and
+    will be removed in a future version.
     """
     job = get_job_metadata(job_id)
     if not job:
@@ -429,7 +455,11 @@ def GET_v1_compile_job_id_bin(job_id):
 
     if 'firmware_filename' in job['result']:
         firmware = qmk_storage.get_fd('%(id)s/%(firmware_filename)s' % job['result'])
-        return send_file(firmware, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['result']['firmware_filename'])
+        return send_file(
+            firmware,
+            mimetype='application/octet-stream',
+            as_attachment=True,
+            attachment_filename=job['result']['firmware_filename'])
 
     return error("Compile job not finished or other error.", 422)
 
@@ -444,7 +474,11 @@ def GET_v1_compile_job_id_src(job_id):
 
     if job['result']['firmware']:
         source_zip = qmk_storage.get_fd('%(id)s/%(source_archive)s' % job['result'])
-        return send_file(source_zip, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['result']['source_archive'])
+        return send_file(
+            source_zip,
+            mimetype='application/octet-stream',
+            as_attachment=True,
+            attachment_filename=job['result']['source_archive'])
 
     return error("Compile job not finished or other error.", 422)
 
