@@ -1,14 +1,13 @@
 import json
 import logging
+from collections import OrderedDict
+from codecs import open as copen
 from decimal import Decimal
-from io import BytesIO
 from os.path import exists
 from os import stat, remove, makedirs, environ
 from time import strftime, time, localtime
 
 import requests
-from collections import OrderedDict
-from codecs import open as copen
 from flask import jsonify, Flask, redirect, request, send_file
 from flask import make_response
 from flask.json import JSONEncoder
@@ -20,6 +19,7 @@ import qmk_storage
 from kle2xy import KLE2xy
 from qmk_compiler import compile_firmware, redis, ping
 from update_kb_redis import update_kb_redis
+
 
 if exists('version.txt'):
     __VERSION__ = open('version.txt').read()
@@ -174,7 +174,6 @@ def GET_v1_healthcheck():
         'last_ping': qmk_redis.get('qmk_api_last_ping'),
         'queue_length': len(rq),
         'queued_job_ids':  rq.job_ids,
-        'queued_jobs': rq.jobs,
         'status': 'running',
         'version': __VERSION__
     })
