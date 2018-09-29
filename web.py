@@ -309,7 +309,7 @@ def GET_v1_keyboards_keyboard_keymaps_keymap(keyboard, keymap):
             keymap_list = kb_data['keymaps'] if keymap == 'all' else keymap.split(',')
 
             for km in keymap_list:
-                keymaps[km] = qmk_redis.get('qmk_api_kb_{}_keymap_{}'.format(kb, km))
+                keymaps[km]  = qmk_redis.get('qmk_api_kb_%s_keymap_%s' % (kb, km))
 
             if not keymaps:
                 return error('No such keymap: ' + keymap, 404)
@@ -327,7 +327,7 @@ def GET_v1_keyboards_keyboard_keymaps_keymap(keyboard, keymap):
 def GET_v1_keyboards_keyboard_keymaps_keymap_readme(keyboard, keymap):
     """Returns the readme for a keymap.
     """
-    readme = qmk_redis.get('qmk_api_kb_{}_keymap_{}_readme'.format(keyboard, keymap))
+    readme = qmk_redis.get('qmk_api_kb_%s_keymap_%s_readme' % (keyboard, keymap))
 
     response = make_response(readme)
     response.mimetype = 'text/markdown'
