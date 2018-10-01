@@ -46,8 +46,8 @@ padding = [2, 2, 2, 2]
 radius = [2, 2, 2, 2]
 
 if ('display' in data):
-    padding = [int(x) for x in data['display']['padding'].split(' ')]
-    radius = [int(x) for x in data['display']['radius'].split(' ')]
+    padding = [int(x) + 0.5 for x in data['display']['padding'].split(' ')]
+    radius = [int(x) + 0.5 for x in data['display']['radius'].split(' ')]
 
 for key in data['layouts']['KEYMAP']['layout']:
     k = dwg.use(keycaps[int(key['w']*4)], insert=(key['x']*20 + padding[3], key['y']*20 + padding[0]))
@@ -59,8 +59,9 @@ for key in data['layouts']['KEYMAP']['layout']:
         if (key['w'] >= max_w):
             max_w = key['w']
 
-dwg.add(dwg.rect(insert=(0, 0), 
-    size=((max_x+max_w)*20 + padding[1] + padding[3], (max_y+1)*20 + padding[0] + padding[2]), fill_opacity=0, rx=radius[0], ry=radius[1]).stroke(
+dwg.add(dwg.rect(insert=(0.5, 0.5), 
+    size=((max_x+max_w)*20 + padding[1] + padding[3] - 1, (max_y+1)*20 + padding[0] + padding[2] - 1), fill_opacity=0, rx=radius[0], ry=radius[1]).stroke(
     svgwrite.rgb(200, 200, 200), width=1))
-
+dwg['width'] = (max_x+max_w)*20 + padding[1] + padding[3]
+dwg['height'] = (max_y+1)*20 + padding[0] + padding[2]
 dwg.save()

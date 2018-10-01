@@ -295,6 +295,18 @@ def GET_v1_keyboards_keyboard_readme(keyboard):
     return response
 
 
+@app.route('/v1/keyboards/<path:keyboard>/<path:layout>/svg', methods=['GET'])
+def GET_v1_keyboards_keyboard_readme(keyboard, layout):
+    """Returns the readme for a keyboard.
+    """
+    readme = qmk_redis.get('qmk_api_kb_%s_readme' % (keyboard))
+
+    response = make_response(readme)
+    response.mimetype = 'text/markdown'
+
+    return response
+
+
 @app.route('/v1/keyboards/<path:keyboard>/keymaps/<string:keymap>', methods=['GET'])
 def GET_v1_keyboards_keyboard_keymaps_keymap(keyboard, keymap):
     """Return JSON showing data about a keyboard's keymap
