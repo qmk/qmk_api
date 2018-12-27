@@ -1,19 +1,17 @@
 #!/usr/bin/env python3
-import json
 import random
 
 import requests
 from sys import argv
 from time import sleep, time
 
-print(len(argv))
-if 4 < len(argv) < 2:
+if len(argv) < 2 or len(argv) > 4:
     print('Usage: %s <keyboard> [base_url]' % argv[0])
     exit(1)
 else:
     keyboard = argv[1]
 
-baseurl = argv[2] if len(argv) > 2 else 'http://127.0.0.1:5000/v1'
+baseurl = argv[2] if len(argv) > 2 else 'http://qmk_api:5000/v1'
 compile_url = '/'.join((baseurl, 'compile'))
 http = requests.Session()
 http.headers.update({'Accept': 'application/json'})
