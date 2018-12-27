@@ -3,7 +3,6 @@ import logging
 from collections import OrderedDict
 from codecs import open as copen
 from decimal import Decimal
-from io import BytesIO
 from os.path import exists
 from os import stat, remove, makedirs, environ
 from time import strftime, time, localtime

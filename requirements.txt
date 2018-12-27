@@ -1,8 +1,9 @@
 beautifulsoup4
 boto3
+dhooks
 flask
 flask-cors
 gunicorn
-requests
+requests==2.20.1
 rq
 sparse_list
