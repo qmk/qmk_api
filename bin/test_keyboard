@@ -62,15 +62,15 @@ while True:
         print(job_status.content.decode(compile.encoding))
         exit(1)
 
-    if job_status['status'] == 'failed':
+    if job_status['is_failed']:
         print('*** Compile failed!')
         print(job_status)
         break
     elif job_status['status'] == 'finished':
         print('*** Compile succeeded!')
         print('*** Waited %s seconds for firmware.' % (time()-startTime))
-        print('*** Download Hex: %s/%s/hex' % (compile_url, job['job_id']))
-        print('*** Download Src: %s/%s/source' % (compile_url, job['job_id']))
+        print('*** Download Hex: ' + '\n'.join(job_status['firmware_binary_url']))
+        print('*** Download Src: ' + '\n'.join(job_status['firmware_source_url']))
         exit(0)
     elif job_status['status'] == 'queued':
         print('*** Status: Queued')
@@ -91,16 +91,16 @@ while True:
 
             if job_status['status'] == 'running':
                 sleep(2)
-            elif job_status['status'] == 'finished':
-                print('*** Compile succeeded!')
-                print('*** Waited %s seconds for firmware.' % (time()-startTime))
-                print('*** Download Hex: %s/%s/hex' % (compile_url, job['job_id']))
-                print('*** Download Src: %s/%s/source' % (compile_url, job['job_id']))
-                exit(0)
-            elif job_status['status'] == 'failed':
+            elif job_status['is_failed']:
                 print('*** Compile failed!')
                 print(job_status)
                 break
+            elif job_status['status'] == 'finished':
+                print('*** Compile succeeded!')
+                print('*** Waited %s seconds for firmware.' % (time()-startTime))
+                print('*** Download Hex: ' + '\n'.join(job_status['result']['firmware_binary_url']))
+                print('*** Download Src: ' + '\n'.join(job_status['result']['firmware_source_url']))
+                exit(0)
             else:
                 break
         break
