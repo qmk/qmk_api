@@ -373,7 +373,7 @@ def POST_v1_compile():
         return error("Invalid JSON data!")
 
     if '.' in data['keyboard'] or '/' in data['keymap']:
-        return error("Fuck off hacker.", 422)
+        return error("Buzz off hacker.", 422)
 
     job = compile_firmware.delay(data['keyboard'], data['keymap'], data['layout'], data['layers'])
     return jsonify({'enqueued': True, 'job_id': job.id})
@@ -397,6 +397,7 @@ def GET_v1_compile_job_id(job_id):
         else:
             logging.error('Unknown job status!')
             status = 'unknown'
+
         return jsonify({
             'created_at': job.created_at,
             'enqueued_at': job.enqueued_at,
@@ -426,11 +427,7 @@ def GET_v1_compile_job_id_bin(job_id):
     if not job:
         return error("Compile job not found", 404)
 
-    if 'firmware_filename' in job['result']:
-        firmware = qmk_storage.get_fd('%(id)s/%(firmware_filename)s' % job['result'])
-        return send_file(firmware, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['result']['firmware_filename'])
-
-    return error("Compile job not finished or other error.", 422)
+    return redirect(qmk_storage.get_public_url('%(id)s/%(firmware_filename)s' % job['result']))
 
 
 @app.route('/v1/compile/<string:job_id>/source', methods=['GET'])
@@ -441,11 +438,7 @@ def GET_v1_compile_job_id_src(job_id):
     if not job:
         return error("Compile job not found", 404)
 
-    if job['result']['firmware']:
-        source_zip = qmk_storage.get_fd('%(id)s/%(source_archive)s' % job['result'])
-        return send_file(source_zip, mimetype='application/octet-stream', as_attachment=True, attachment_filename=job['result']['source_archive'])
-
-    return error("Compile job not finished or other error.", 422)
+    return redirect(qmk_storage.get_public_url('%(id)s/%(source_archive)s' % job['result']))
 
 
 if __name__ == '__main__':
