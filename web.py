@@ -364,6 +364,15 @@ def GET_v1_keyboards_error_log():
     return jsonify(json_blob)
 
 
+@app.route('/v1/usb', methods=['GET'])
+def GET_v1_usb():
+    """Returns the list of USB device identifiers used in QMK.
+    """
+    json_blob = qmk_redis.get('qmk_api_usb_list')
+
+    return jsonify(json_blob)
+
+
 @app.route('/v1/compile', methods=['POST'])
 def POST_v1_compile():
     """Enqueue a compile job.
