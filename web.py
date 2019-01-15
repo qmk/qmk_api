@@ -439,9 +439,20 @@ def GET_v1_compile_job_id_bin(job_id):
     return redirect(qmk_storage.get_public_url('%(id)s/%(firmware_filename)s' % job['result']))
 
 
+@app.route('/v1/compile/<string:job_id>/keymap', methods=['GET'])
+def GET_v1_compile_job_id_keymap(job_id):
+    """Download the keymap for a completed compile job.
+    """
+    job = get_job_metadata(job_id)
+    if not job:
+        return error("Compile job not found", 404)
+
+    return redirect(qmk_storage.get_public_url('%(id)s/%(keymap_archive)s' % job['result']))
+
+
 @app.route('/v1/compile/<string:job_id>/source', methods=['GET'])
 def GET_v1_compile_job_id_src(job_id):
-    """Download a completed compile job.
+    """Download the full source for a completed compile job.
     """
     job = get_job_metadata(job_id)
     if not job:
