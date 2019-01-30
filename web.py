@@ -233,7 +233,6 @@ def POST_v1_converters_kle():
         keyboard_name=kle.name,
         url='',
         maintainer='qmk',
-        bootloader='',
         width=kle.columns,
         height=kle.rows,
         layouts={'LAYOUT': {'layout': 'LAYOUT_JSON_HERE'}}
