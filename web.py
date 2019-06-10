@@ -20,13 +20,12 @@ from kle2xy import KLE2xy
 from qmk_compiler import compile_firmware, redis, ping
 from update_kb_redis import update_kb_redis
 
-
 if exists('version.txt'):
     __VERSION__ = open('version.txt').read()
 else:
     __VERSION__ = '__UNKNOWN__'
 
-UPDATE_API=environ.get('UPDATE_API', 'false') == 'true'
+UPDATE_API = environ.get('UPDATE_API', 'false') == 'true'
 
 
 ## Classes
@@ -132,7 +131,7 @@ def kle_to_qmk(kle):
             if 'name' in key and key['name']:
                 qmk_key['label'] = key['name'].split('\n', 1)[0]
             else:
-                del(qmk_key['label'])
+                del (qmk_key['label'])
 
             layout.append(qmk_key)
 
@@ -156,7 +155,7 @@ def GET_v1():
         'last_ping': qmk_redis.get('qmk_api_last_ping'),
         'queue_length': len(rq),
         'status': 'running',
-        'version': __VERSION__
+        'version': __VERSION__,
     })
 
 
@@ -173,9 +172,9 @@ def GET_v1_healthcheck():
     return jsonify({
         'last_ping': qmk_redis.get('qmk_api_last_ping'),
         'queue_length': len(rq),
-        'queued_job_ids':  rq.job_ids,
+        'queued_job_ids': rq.job_ids,
         'status': 'running',
-        'version': __VERSION__
+        'version': __VERSION__,
     })
 
 
@@ -187,9 +186,9 @@ def GET_v1_update():
         'result': UPDATE_API,
         'last_ping': qmk_redis.get('qmk_api_last_ping'),
         'queue_length': len(rq),
-        'queued_job_ids':  rq.job_ids,
+        'queued_job_ids': rq.job_ids,
         'status': 'running',
-        'version': __VERSION__
+        'version': __VERSION__,
     }
 
     if UPDATE_API:
@@ -235,7 +234,9 @@ def POST_v1_converters_kle():
         maintainer='qmk',
         width=kle.columns,
         height=kle.rows,
-        layouts={'LAYOUT': {'layout': 'LAYOUT_JSON_HERE'}}
+        layouts={'LAYOUT': {
+            'layout': 'LAYOUT_JSON_HERE'
+        }},
     )
     keyboard = json.dumps(keyboard, indent=4, separators=(', ', ': '), sort_keys=False, cls=CustomJSONEncoder)
     layout = json.dumps(kle_to_qmk(kle), separators=(', ', ':'), cls=CustomJSONEncoder)
@@ -272,7 +273,7 @@ def GET_v1_keyboards_keyboard(keyboard):
     keyboards['keyboards'] = {}
 
     for kb in keyboard.split(','):
-        kb_data = qmk_redis.get('qmk_api_kb_'+kb)
+        kb_data = qmk_redis.get('qmk_api_kb_' + kb)
         if kb_data:
             keyboards['keyboards'][kb] = kb_data
 
@@ -302,13 +303,13 @@ def GET_v1_keyboards_keyboard_keymaps_keymap(keyboard, keymap):
     keyboards['keyboards'] = {}
 
     for kb in keyboard.split(','):
-        kb_data = qmk_redis.get('qmk_api_kb_'+kb)
+        kb_data = qmk_redis.get('qmk_api_kb_' + kb)
         if kb_data:
             keymaps = {}
             keymap_list = kb_data['keymaps'] if keymap == 'all' else keymap.split(',')
 
             for km in keymap_list:
-                keymaps[km]  = qmk_redis.get('qmk_api_kb_%s_keymap_%s' % (kb, km))
+                keymaps[km] = qmk_redis.get('qmk_api_kb_%s_keymap_%s' % (kb, km))
 
             if not keymaps:
                 return error('No such keymap: ' + keymap, 404)
@@ -412,7 +413,7 @@ def GET_v1_compile_job_id(job_id):
             'id': job.id,
             'is_failed': job.is_failed or (job.result and job.result.get('returncode') != 0),
             'status': status,
-            'result': job.result
+            'result': job.result,
         })
 
     # Check for cached json if it's not in redis

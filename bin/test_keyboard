@@ -26,7 +26,7 @@ if not metadata['layouts']:
 
 # Prepare our request
 layout_macro = random.choice(list(metadata['layouts']))
-layout = list(map(lambda x:'KC_NO', metadata['layouts'][layout_macro]['layout']))
+layout = list(map(lambda x: 'KC_NO', metadata['layouts'][layout_macro]['layout']))
 layers = [layout, list(map(lambda x: 'KC_TRNS', layout))]
 json_data = {
     'keyboard': keyboard,
@@ -68,7 +68,7 @@ while True:
         break
     elif job_status['status'] == 'finished':
         print('*** Compile succeeded!')
-        print('*** Waited %s seconds for firmware.' % (time()-startTime))
+        print('*** Waited %s seconds for firmware.' % (time() - startTime))
         print('*** Download Hex: ' + '\n'.join(job_status['firmware_binary_url']))
         print('*** Download Src: ' + '\n'.join(job_status['firmware_source_url']))
         exit(0)
@@ -97,7 +97,7 @@ while True:
                 break
             elif job_status['status'] == 'finished':
                 print('*** Compile succeeded!')
-                print('*** Waited %s seconds for firmware.' % (time()-startTime))
+                print('*** Waited %s seconds for firmware.' % (time() - startTime))
                 print('*** Download Hex: ' + '\n'.join(job_status['result']['firmware_binary_url']))
                 print('*** Download Src: ' + '\n'.join(job_status['result']['firmware_source_url']))
                 exit(0)
