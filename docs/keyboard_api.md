@@ -1,5 +1,9 @@
 # Keyboard API
 
+[[toc]]
+
+## Overview
+
 The QMK API supplies extensive information about keyboards and keymaps in the master branch of [qmk_firmware](https://github.com/qmk/qmk_firmware). Configurator frontends can use this information to progmatically build configuration interfaces for any QMK supported keyboard.
 
 ## Versions

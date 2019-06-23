@@ -1,5 +1,9 @@
 # QMK Compiler Keyboard Error Log
 
+[[toc]]
+
+## Overview
+
 Due to the separation between committing an `info.json` file and that file being consumed by the QMK API, an error log is exposed. You can view that error log here:
 
 > http://compile.qmk.fm/v1/keyboards/error_log
@@ -46,6 +50,6 @@ This message occurs when a malformed `info.json` is checked into [`qmk_firmware`
 
 This message occurs when an `info.json` uses something besides a dictionary as the root object. To correct it make sure that a single JSON dictionary is the root object.
 
-# Error encountered processing &lt;filename&gt;
+## Error encountered processing &lt;filename&gt;
 
 This occurs when an error we didn't anticipate occurs. Sometimes you can figure out what's wrong from the message, but if not you should hop on gitter and we'll help you figure out what's going on (and maybe fix our bug ;).

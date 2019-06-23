@@ -2,6 +2,8 @@
 
 This page describes the API for interacting with QMK Compiler. If you are an application developer you can use this API to compile firmware for any [QMK](http://qmk.fm) Keyboard.
 
+[[toc]]
+
 ## Overview
 
 This service is an asynchronous API for compiling custom keymaps. You POST some JSON to the API, periodically check the status, and when your firmware has finished compiling you can download the resulting firmware and (if desired) source code for that firmware.

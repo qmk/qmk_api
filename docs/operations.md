@@ -1,5 +1,7 @@
 # QMK API Operations
 
+[[toc]]
+
 This page documents useful operational information you should know if you're helping to run the QMK API or running your own instance of the QMK API.
 
 ## Production Infrastructure

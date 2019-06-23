@@ -6,3 +6,5 @@ firmwares
 __pycache__
 *.egg-info
 *.pyc
+dist
+node_modules
