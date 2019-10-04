@@ -1,6 +1,6 @@
 # QMK Keymap Compiler API
 
-This page describes the API for interacting with QMK Compiler. If you are an application developer you can use this API to compile firmware for any [QMK](http://qmk.fm) Keyboard.
+This page describes the API for interacting with QMK Compiler. If you are an application developer you can use this API to compile firmware for any [QMK](https://qmk.fm) Keyboard.
 
 ## Overview
 

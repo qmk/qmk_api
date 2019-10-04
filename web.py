@@ -21,7 +21,8 @@ from qmk_compiler import compile_firmware, redis, ping
 from update_kb_redis import update_kb_redis
 
 if exists('version.txt'):
-    __VERSION__ = open('version.txt').read()
+    with open('version.txt') as version_file:
+        __VERSION__ = version_file.read()
 else:
     __VERSION__ = '__UNKNOWN__'
 

@@ -16,7 +16,7 @@ QMK Compiler builds a keymap based on the layout you submit in your JSON payload
 
 This is the default template that QMK Compiler uses:
 
-```
+```c
 #include QMK_KEYBOARD_H
 
 // Helpful defines

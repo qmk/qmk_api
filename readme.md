@@ -11,7 +11,7 @@ JSON API for building a customized firmware.
 
 ## Style
 
-We follow the style guidelines for QMK and have provided a yapf config in setup.cfg.
+We follow the style guidelines for QMK and have provided a yapf config in [setup.cfg](./setup.cfg).
 
 # How Do I Use This API?
 

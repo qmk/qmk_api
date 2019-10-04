@@ -8,9 +8,9 @@ The QMK Compile API consists of a few movings parts:
 
 ![Architecture Diagram](architecture.svg)
 
-API Clients interact exclusively with the API service. This is where they submit jobs, check status, and download results. The API service inserts compile jobs into [Redis Queue](http://python-rq.org) and checks both RQ and Minio for the results of those jobs.
+API Clients interact exclusively with the API service. This is where they submit jobs, check status, and download results. The API service inserts compile jobs into [Redis Queue](https://python-rq.org) and checks both RQ and MinIO for the results of those jobs.
 
-Workers fetch new compile jobs from RQ, compile them, and then upload the source and the binary to our S3 compatible storage engine, [Minio](http://minio.io).
+Workers fetch new compile jobs from RQ, compile them, and then upload the source and the binary to our S3 compatible storage engine, [MinIO](https://min.io).
 
 # Workers
 
@@ -20,7 +20,7 @@ QMK Compiler Workers are responsible for doing the actual building. When a worke
 * Use the supplied layers and keyboard metadata to build a `keymap.c`
 * Build the firmware
 * Zip a copy of the source
-* Upload the firmware, source zip, and a metadata file to Minio.
+* Upload the firmware, source zip, and a metadata file to MinIO.
 * Report the status of the job to RQ
 
 # API Service
@@ -33,7 +33,7 @@ This is the main entrypoint for the API. A client's interaction starts here. The
 
 ## @app.route('/v1/compile/&lt;string:job_id&gt;', methods=['GET'])
 
-This is the most frequently called endpoint. It pulls the job details from redis, if they're still available, or the cached job details on Minio if they're not.
+This is the most frequently called endpoint. It pulls the job details from redis, if they're still available, or the cached job details on MinIO if they're not.
 
 ## @app.route('/v1/compile/&lt;string:job_id&gt;/hex', methods=['GET'])
 
