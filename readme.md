@@ -17,4 +17,4 @@ We follow the style guidelines for QMK and have provided a yapf config in setup.
 
 Our documentation lives on GitBook and can be found here:
 
-> https://docs.compile.qmk.fm
+> https://docs.api.qmk.fm/using-the-api
