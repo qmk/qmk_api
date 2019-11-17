@@ -1,10 +1,11 @@
 #!/bin/sh
+
 if [ -d /kle2xy ]; then
-    pip install -e /kle2xy
+    pip3 install -e /kle2xy
 fi
 
 if [ -d /qmk_compiler ]; then
-    pip install -e /qmk_compiler
+    pip3 install -e /qmk_compiler
 fi
 
 if [ x"$MAX_REQUESTS" = x"" ]; then
