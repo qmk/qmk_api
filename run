@@ -25,7 +25,7 @@ if [ x"$TIMEOUT" = x"" ]; then
 fi
 
 if [ x"$PORT" = x"" ]; then
-    PORT=5000
+    PORT=5001
 fi
 
 if [ x"$RELOAD" = x"1" ]; then
