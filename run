@@ -1,13 +1,5 @@
 #!/bin/sh
 
-if [ -d /kle2xy ]; then
-    pip3 install -e /kle2xy
-fi
-
-if [ -d /qmk_compiler ]; then
-    pip3 install -e /qmk_compiler
-fi
-
 if [ x"$MAX_REQUESTS" = x"" ]; then
     MAX_REQUESTS=1000
 fi
@@ -24,8 +16,8 @@ if [ x"$TIMEOUT" = x"" ]; then
     TIMEOUT=60
 fi
 
-if [ x"$PORT" = x"" ]; then
-    PORT=5001
+if [ x"$QMK_API_PORT" = x"" ]; then
+    QMK_API_PORT=5001
 fi
 
 if [ x"$RELOAD" = x"1" ]; then
@@ -34,4 +26,4 @@ else
     RELOAD=""
 fi
 
-exec gunicorn -w $NUM_WORKERS -b 0.0.0.0:$PORT --max-requests $MAX_REQUESTS --max-requests-jitter $MAX_REQUESTS_JITTER -t $TIMEOUT $RELOAD web:app
+exec gunicorn -w $NUM_WORKERS -b 0.0.0.0:$QMK_API_PORT --max-requests $MAX_REQUESTS --max-requests-jitter $MAX_REQUESTS_JITTER -t $TIMEOUT $RELOAD web:app
