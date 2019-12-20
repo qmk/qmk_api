@@ -1,10 +1,10 @@
 # QMK Compiler
 
-The QMK Compiler provides an asynchronous API that Web and GUI tools can use to compile arbitrary keymaps for any keyboard supported by [QMK](http://qmk.fm/). The stock keymap template supports all QMK keycodes that do not require supporting C code. Keyboard maintainers can supply their own custom templates to enable more functionality.
+The QMK Compiler provides an asynchronous API that Web and GUI tools can use to compile arbitrary keymaps for any keyboard supported by [QMK](https://qmk.fm/). The stock keymap template supports all QMK keycodes that do not require supporting C code. Keyboard maintainers can supply their own custom templates to enable more functionality.
 
 ## App Developers
 
-If you are an app developer interested in using this API in your application you should head over to [Using The API](api_docs.html).
+If you are an app developer interested in using this API in your application you should head over to [Using The API](api_docs.md).
 
 ## Keyboard Maintainers
 

@@ -28,7 +28,7 @@ This error occurs when QMK API is not able to locate a `LAYOUT()` macro for the 
 
 This message occurs when the layout defined in `info.json` does not have the same number of elements as the associated `LAYOUT()` macro. To correct it you should add or remove elements from the `info.json` file to match the `LAYOUT()` macro.
 
-Typically this situation occurs when the number of keys in your [keyboard-layout-editor](http://keyboard-layout-editor.com) layout does not match the number of elements in your `LAYOUT()` macro. This often occurs when someone doesn't consider all the layouts available for the PCB they're working on when building the layout. Make sure that the number of keys in your [keyboard-layout-editor](http://keyboard-layout-editor.com) layout matches exactly the number of elements is the first part of your `LAYOUT()` macro.
+Typically this situation occurs when the number of keys in your [keyboard-layout-editor](http://www.keyboard-layout-editor.com) layout does not match the number of elements in your `LAYOUT()` macro. This often occurs when someone doesn't consider all the layouts available for the PCB they're working on when building the layout. Make sure that the number of keys in your [keyboard-layout-editor](http://www.keyboard-layout-editor.com) layout matches exactly the number of elements is the first part of your `LAYOUT()` macro.
 
 As an example, consider [this layout](http://www.keyboard-layout-editor.com/#/gists/4e4f1a50b3788231c1109158443d568a) for the Clueboard:
 

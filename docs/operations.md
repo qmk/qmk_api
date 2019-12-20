@@ -7,14 +7,14 @@ This page documents useful operational information you should know if you're hel
 The QMK API is hosted on a Rancher Cluster that has been provided by Clueboard. All of the QMK API containers are located in the `qmk-api` Stack. There are 5 containers in total:
 
 * `api` - The service that handles HTTP requests from clients
-* `compiler` - The [RQ](http://python-rq.org/docs/) worker process, where compilation and various maintenance tasks happen
+* `compiler` - The [RQ](https://python-rq.org/docs/) worker process, where compilation and various maintenance tasks happen
 * `qmk-bot` - The service that receives webhook triggers from github, to kick off maintenance tasks
-* `redis` - An instance of redis, used for [RQ](http://python-rq.org/docs/) and metadata storage
+* `redis` - An instance of redis, used for [RQ](https://python-rq.org/docs/) and metadata storage
 * `redis-lb` - An haproxy instance that load balances redis traffic
 
 ## Code Deployments
 
-We use [Docker Hub](http://hub.docker.com) to build and distribute containers for the production infrastructure. Every PR merged into our GitHub repositories will result in a new container being built and available.
+We use [Docker Hub](https://hub.docker.com) to build and distribute containers for the production infrastructure. Every PR merged into our GitHub repositories will result in a new container being built and available.
 
 The critical path for code is:
 
