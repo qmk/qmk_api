@@ -7,3 +7,5 @@ gunicorn
 requests==2.20.1
 rq
 sparse_list
+flask_swagger
+flask_swagger_ui 

@@ -14,6 +14,9 @@ from flask.json import JSONEncoder
 from flask_cors import CORS
 from rq import Queue
 
+from flask_swagger import swagger
+from flask_swagger_ui import get_swaggerui_blueprint
+
 import qmk_redis
 import qmk_storage
 from kle2xy import KLE2xy
@@ -140,16 +143,49 @@ def kle_to_qmk(kle):
 
 
 ## Views
+
+### swagger specific ###
+SWAGGER_URL = '/swagger'
+API_URL = '/spec'
+SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={
+        'app_name': "QMK API"
+    }
+)
+app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
+@app.route("/spec")
+def spec():
+    """
+        Swagger JSON
+        ---
+        tags:
+            - General
+    """
+    swag = swagger(app)
+    swag['info']['version'] = "1.0"
+    swag['info']['title'] = "QMK API"
+    return jsonify(swag)
+
 @app.route('/', methods=['GET'])
 def root():
-    """Serve up the documentation for this API.
+    """
+        Redirect to official docs
+        ---
+        tags:
+            - General
     """
     return redirect('https://docs.api.qmk.fm/')
 
 
 @app.route('/v1', methods=['GET'])
 def GET_v1():
-    """Return the API's status.
+    """
+        Return the API's status.
+        ---
+        tags:
+            - General
     """
     return jsonify({
         'children': ['compile', 'converters', 'keyboards'],
@@ -162,12 +198,18 @@ def GET_v1():
 
 @app.route('/v1/healthcheck', methods=['GET'])
 def GET_v1_healthcheck():
-    """Checks over the health of the API.
-
+    """
+        Checks over the health of the API.        
+        ---        
+        tags:
+            - Dangerous
+    """
+    ¨¨"""
     Note: This is used for operational purposes. Please don't hit it on the
     live api.qmk.fm site without talking to us first. Most of this
     information is available at the /v1 endpoint as well.
     """
+
     rq.enqueue(ping, at_front=True)
 
     return jsonify({
@@ -200,7 +242,11 @@ def GET_v1_update():
 
 @app.route('/v1/converters', methods=['GET'])
 def GET_v1_converters():
-    """Return the list of converters we support.
+    """
+        Return the list of converters we support.
+        ---        
+        tags:
+            - Converter
     """
     return jsonify({'children': ['kle']})
 
@@ -208,7 +254,11 @@ def GET_v1_converters():
 @app.route('/v1/converters/kle2qmk', methods=['POST'])
 @app.route('/v1/converters/kle', methods=['POST'])
 def POST_v1_converters_kle():
-    """Convert a KLE layout to QMK's layout format.
+    """
+        Convert a KLE layout to QMK's layout format.
+        ---        
+        tags:
+            - Converter
     """
     data = request.get_json(force=True)
     if not data:
@@ -250,7 +300,11 @@ def POST_v1_converters_kle():
 
 @app.route('/v1/keyboards', methods=['GET'])
 def GET_v1_keyboards():
-    """Return a list of keyboards
+    """
+        Return a list of keyboards
+        ---        
+        tags:
+            - Keyboards
     """
     json_blob = qmk_redis.get('qmk_api_keyboards')
     return jsonify(json_blob)
@@ -258,7 +312,11 @@ def GET_v1_keyboards():
 
 @app.route('/v1/keyboards/all', methods=['GET'])
 def GET_v1_keyboards_all():
-    """Return JSON showing all available keyboards and their layouts.
+    """
+        Return JSON showing all available keyboards and their layouts.
+        ---        
+        tags:
+            - Keyboards
     """
     allkb = qmk_redis.get('qmk_api_kb_all')
     if allkb:
@@ -268,7 +326,11 @@ def GET_v1_keyboards_all():
 
 @app.route('/v1/keyboards/<path:keyboard>', methods=['GET'])
 def GET_v1_keyboards_keyboard(keyboard):
-    """Return JSON showing data about a keyboard
+    """
+        Return JSON showing data about a keyboard
+        ---        
+        tags:
+            - Keyboards
     """
     keyboards = qmk_redis.get('qmk_api_last_updated')
     keyboards['keyboards'] = {}
@@ -286,7 +348,11 @@ def GET_v1_keyboards_keyboard(keyboard):
 
 @app.route('/v1/keyboards/<path:keyboard>/readme', methods=['GET'])
 def GET_v1_keyboards_keyboard_readme(keyboard):
-    """Returns the readme for a keyboard.
+    """
+        Returns the readme for a keyboard.
+        ---        
+        tags:
+            - Keyboards
     """
     readme = qmk_redis.get('qmk_api_kb_%s_readme' % (keyboard))
 
@@ -298,7 +364,11 @@ def GET_v1_keyboards_keyboard_readme(keyboard):
 
 @app.route('/v1/keyboards/<path:keyboard>/keymaps/<string:keymap>', methods=['GET'])
 def GET_v1_keyboards_keyboard_keymaps_keymap(keyboard, keymap):
-    """Return JSON showing data about a keyboard's keymap
+    """
+        Return JSON showing data about a keyboard's keymap
+        ---        
+        tags:
+            - Keyboards
     """
     keyboards = qmk_redis.get('qmk_api_last_updated')
     keyboards['keyboards'] = {}
@@ -326,7 +396,11 @@ def GET_v1_keyboards_keyboard_keymaps_keymap(keyboard, keymap):
 
 @app.route('/v1/keyboards/<path:keyboard>/keymaps/<string:keymap>/readme', methods=['GET'])
 def GET_v1_keyboards_keyboard_keymaps_keymap_readme(keyboard, keymap):
-    """Returns the readme for a keymap.
+    """
+        Returns the readme for a keymap.
+        ---        
+        tags:
+            - Keyboards
     """
     readme = qmk_redis.get('qmk_api_kb_%s_keymap_%s_readme' % (keyboard, keymap))
 
@@ -338,8 +412,11 @@ def GET_v1_keyboards_keyboard_keymaps_keymap_readme(keyboard, keymap):
 
 @app.route('/v1/keyboards/build_status', methods=['GET'])
 def GET_v1_keyboards_build_status():
-    """Returns a dictionary of keyboard/layout pairs. Each entry is True if the keyboard works in configurator and
-    false if it doesn't.
+    """
+        Returns a dictionary of keyboard/layout pairs. Each entry is True if the keyboard works in configurator and false if it doesn't.
+        ---        
+        tags:
+            - Keyboards
     """
     json_blob = qmk_redis.get('qmk_api_keyboards_tested')
     return jsonify(json_blob)
@@ -347,18 +424,25 @@ def GET_v1_keyboards_build_status():
 
 @app.route('/v1/keyboards/build_log', methods=['GET'])
 def GET_v1_keyboards_build_log():
-    """Returns a dictionary of keyboard/layout pairs. Each entry is a dictionary with the following keys:
-
-    * `works`: Boolean indicating whether the compile was successful
-    * `message`: The compile output for failed builds
     """
+        Returns a dictionary of keyboard/layout pairs. Each entry is a dictionary with the following keys
+        ---        
+        tags:
+            - Keyboards
+    """   
     json_data = qmk_redis.get('qmk_api_configurator_status')
     return jsonify(json_data)
+        #     * `works` Boolean indicating whether the compile was successful
+        # * `message` The compile output for failed builds
 
 
 @app.route('/v1/keyboards/error_log', methods=['GET'])
 def GET_v1_keyboards_error_log():
-    """Return the error log from the last run.
+    """
+        Return the error log from the last run.
+        ---        
+        tags:
+            - Keyboards
     """
     json_blob = qmk_redis.get('qmk_api_update_error_log')
 
@@ -367,7 +451,11 @@ def GET_v1_keyboards_error_log():
 
 @app.route('/v1/usb', methods=['GET'])
 def GET_v1_usb():
-    """Returns the list of USB device identifiers used in QMK.
+    """
+        Returns the list of USB device identifiers used in QMK.
+        ---        
+        tags:
+            - USB
     """
     json_blob = qmk_redis.get('qmk_api_usb_list')
 
@@ -376,7 +464,11 @@ def GET_v1_usb():
 
 @app.route('/v1/compile', methods=['POST'])
 def POST_v1_compile():
-    """Enqueue a compile job.
+    """
+        Enqueue a compile job.
+        ---        
+        tags:
+            - Compile
     """
     data = request.get_json(force=True)
     if not data:
@@ -391,7 +483,11 @@ def POST_v1_compile():
 
 @app.route('/v1/compile/<string:job_id>', methods=['GET'])
 def GET_v1_compile_job_id(job_id):
-    """Fetch the status of a compile job.
+    """
+        Fetch the status of a compile job.
+        ---        
+        tags:
+            - Compile
     """
     # Check redis first.
     job = rq.fetch_job(job_id)
@@ -429,10 +525,14 @@ def GET_v1_compile_job_id(job_id):
 @app.route('/v1/compile/<string:job_id>/download', methods=['GET'])
 @app.route('/v1/compile/<string:job_id>/hex', methods=['GET'])
 def GET_v1_compile_job_id_bin(job_id):
-    """Download a compiled firmware.
-
-    New clients should prefer the `/download` URL. `/hex` is deprecated and will be removed in a future version.
     """
+        Download a compiled firmware.
+        New clients should prefer the `/download` URL. `/hex` is deprecated and will be removed in a future version.
+        ---        
+        tags:
+            - Compile
+    """
+
     job = get_job_metadata(job_id)
     if not job:
         return error("Compile job not found", 404)
@@ -442,7 +542,11 @@ def GET_v1_compile_job_id_bin(job_id):
 
 @app.route('/v1/compile/<string:job_id>/keymap', methods=['GET'])
 def GET_v1_compile_job_id_keymap(job_id):
-    """Download the keymap for a completed compile job.
+    """
+        Download the keymap for a completed compile job.
+        ---        
+        tags:
+            - Compile
     """
     job = get_job_metadata(job_id)
     if not job:
@@ -453,7 +557,11 @@ def GET_v1_compile_job_id_keymap(job_id):
 
 @app.route('/v1/compile/<string:job_id>/source', methods=['GET'])
 def GET_v1_compile_job_id_src(job_id):
-    """Download the full source for a completed compile job.
+    """
+        Download the full source for a completed compile job.
+        ---        
+        tags:
+            - Compile
     """
     job = get_job_metadata(job_id)
     if not job:
