@@ -200,16 +200,11 @@ def GET_v1():
 def GET_v1_healthcheck():
     """
         Checks over the health of the API.        
+        This is used for operational purposes. Please don't hit it on the live api.qmk.fm site without talking to us first. Most of this information is available at the /v1 endpoint as well.
         ---        
         tags:
             - Dangerous
     """
-    ¨¨"""
-    Note: This is used for operational purposes. Please don't hit it on the
-    live api.qmk.fm site without talking to us first. Most of this
-    information is available at the /v1 endpoint as well.
-    """
-
     rq.enqueue(ping, at_front=True)
 
     return jsonify({
@@ -426,6 +421,8 @@ def GET_v1_keyboards_build_status():
 def GET_v1_keyboards_build_log():
     """
         Returns a dictionary of keyboard/layout pairs. Each entry is a dictionary with the following keys
+        * `works`: Boolean indicating whether the compile was successful
+        * `message` The compile output for failed builds
         ---        
         tags:
             - Keyboards
