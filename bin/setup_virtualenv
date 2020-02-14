@@ -71,10 +71,10 @@ ln -s .qmk_compiler_api-$PYTHON_VERSION/bin/activate activate-$PYTHON_VERSION ||
 # Setup the environment
 source activate-$PYTHON_VERSION || exit
 pip install -r requirements.txt || exit
-if [ -d ../qmk_compiler_worker ]; then
-	pip install --editable ../qmk_compiler_worker
+if [ -d ../qmk_compiler ]; then
+	pip install --editable ../qmk_compiler
 else
-	pip install git+git://github.com/qmk/qmk_compiler_worker.git@master
+	pip install git+git://github.com/qmk/qmk_compiler.git@master
 fi
 
 cat << EOF

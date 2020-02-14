@@ -218,7 +218,11 @@ def GET_v1_healthcheck():
 
 @app.route('/v1/update', methods=['GET'])
 def GET_v1_update():
-    """Triggers an update of the API.
+    """
+        Triggers an update of the API.
+        ---        
+        tags:
+            - Dangerous
     """
     result = {
         'result': UPDATE_API,
@@ -311,7 +315,7 @@ def GET_v1_keyboards_all():
         Return JSON showing all available keyboards and their layouts.
         ---        
         tags:
-            - Keyboards
+            - Dangerous
     """
     allkb = qmk_redis.get('qmk_api_kb_all')
     if allkb:
@@ -326,6 +330,9 @@ def GET_v1_keyboards_keyboard(keyboard):
         ---        
         tags:
             - Keyboards
+        parameters:
+            - in: path
+              name: keyboard
     """
     keyboards = qmk_redis.get('qmk_api_last_updated')
     keyboards['keyboards'] = {}
@@ -348,6 +355,9 @@ def GET_v1_keyboards_keyboard_readme(keyboard):
         ---        
         tags:
             - Keyboards
+        parameters:
+            - in: path
+              name: keyboard
     """
     readme = qmk_redis.get('qmk_api_kb_%s_readme' % (keyboard))
 
@@ -364,6 +374,11 @@ def GET_v1_keyboards_keyboard_keymaps_keymap(keyboard, keymap):
         ---        
         tags:
             - Keyboards
+        parameters:
+            - in: path
+              name: keyboard
+            - in: path
+              name: keymap
     """
     keyboards = qmk_redis.get('qmk_api_last_updated')
     keyboards['keyboards'] = {}
@@ -396,6 +411,11 @@ def GET_v1_keyboards_keyboard_keymaps_keymap_readme(keyboard, keymap):
         ---        
         tags:
             - Keyboards
+        parameters:
+            - in: path
+              name: keyboard
+            - in: path
+              name: keymap
     """
     readme = qmk_redis.get('qmk_api_kb_%s_keymap_%s_readme' % (keyboard, keymap))
 
@@ -485,6 +505,9 @@ def GET_v1_compile_job_id(job_id):
         ---        
         tags:
             - Compile
+        parameters:
+            - in: path
+              name: job_id
     """
     # Check redis first.
     job = rq.fetch_job(job_id)
@@ -528,6 +551,9 @@ def GET_v1_compile_job_id_bin(job_id):
         ---        
         tags:
             - Compile
+        parameters:
+            - in: path
+              name: job_id
     """
 
     job = get_job_metadata(job_id)
@@ -541,9 +567,12 @@ def GET_v1_compile_job_id_bin(job_id):
 def GET_v1_compile_job_id_keymap(job_id):
     """
         Download the keymap for a completed compile job.
-        ---        
+        ---
         tags:
             - Compile
+        parameters:
+            - in: path
+              name: job_id
     """
     job = get_job_metadata(job_id)
     if not job:
@@ -559,6 +588,9 @@ def GET_v1_compile_job_id_src(job_id):
         ---        
         tags:
             - Compile
+        parameters:
+            - in: path
+              name: job_id
     """
     job = get_job_metadata(job_id)
     if not job:
