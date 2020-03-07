@@ -299,41 +299,19 @@ def GET_v1_keyboards_keyboard_readme(keyboard):
 @app.route('/v1/keyboards/<path:keyboard>/keymaps/<string:keymap>', methods=['GET'])
 def GET_v1_keyboards_keyboard_keymaps_keymap(keyboard, keymap):
     """Return JSON showing data about a keyboard's keymap
+
+    Deprecated because it's unused and takes up valuable memory and processing time.
     """
-    keyboards = qmk_redis.get('qmk_api_last_updated')
-    keyboards['keyboards'] = {}
-
-    for kb in keyboard.split(','):
-        kb_data = qmk_redis.get('qmk_api_kb_' + kb)
-        if kb_data:
-            keymaps = {}
-            keymap_list = kb_data['keymaps'] if keymap == 'all' else keymap.split(',')
-
-            for km in keymap_list:
-                keymaps[km] = qmk_redis.get('qmk_api_kb_%s_keymap_%s' % (kb, km))
-
-            if not keymaps:
-                return error('No such keymap: ' + keymap, 404)
-
-            kb_data['keymaps'] = keymaps
-            keyboards['keyboards'][kb] = kb_data
-
-    if not keyboards['keyboards']:
-        return error('No such keyboard: ' + keyboard, 404)
-
-    return jsonify(keyboards)
+    return error('No such keymap: ' + keymap, 404)
 
 
 @app.route('/v1/keyboards/<path:keyboard>/keymaps/<string:keymap>/readme', methods=['GET'])
 def GET_v1_keyboards_keyboard_keymaps_keymap_readme(keyboard, keymap):
     """Returns the readme for a keymap.
+
+    Deprecated because it's unused and takes up valuable memory and processing time.
     """
-    readme = qmk_redis.get('qmk_api_kb_%s_keymap_%s_readme' % (keyboard, keymap))
-
-    response = make_response(readme)
-    response.mimetype = 'text/markdown'
-
-    return response
+    return error('No such keymap: ' + keymap, 404)
 
 
 @app.route('/v1/keyboards/build_status', methods=['GET'])
