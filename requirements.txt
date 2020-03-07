@@ -4,6 +4,6 @@ dhooks
 flask
 flask-cors
 gunicorn
-requests==2.20.1
+requests
 rq
 sparse_list
