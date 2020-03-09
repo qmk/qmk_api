@@ -53,6 +53,12 @@ rq = Queue(connection=redis)
 
 
 ## Helper functions
+def client_ip():
+    """Returns the client's IP address.
+    """
+    return request.headers.get('X-Forwarded-For', request.remote_addr))
+
+
 def error(message, code=400, **kwargs):
     """Return a structured JSON error message.
     """
@@ -363,7 +369,7 @@ def POST_v1_compile():
     if '.' in data['keyboard'] or '/' in data['keymap']:
         return error("Buzz off hacker.", 422)
 
-    job = compile_firmware.delay(data['keyboard'], data['keymap'], data['layout'], data['layers'])
+    job = compile_firmware.delay(data['keyboard'], data['keymap'], data['layout'], data['layers'], client_ip())
     return jsonify({'enqueued': True, 'job_id': job.id})
 
 
