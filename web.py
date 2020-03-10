@@ -56,7 +56,7 @@ rq = Queue(connection=redis)
 def client_ip():
     """Returns the client's IP address.
     """
-    return request.headers.get('X-Forwarded-For', request.remote_addr))
+    return request.headers.get('X-Forwarded-For', request.remote_addr)
 
 
 def error(message, code=400, **kwargs):
