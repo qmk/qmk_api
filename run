@@ -8,6 +8,10 @@ if [ x"$MAX_REQUESTS_JITTER" = x"" ]; then
     MAX_REQUESTS_JITTER=100
 fi
 
+if [ x"$LOG_LEVEL" = x"" ]; then
+    LOG_LEVEL=INFO
+fi
+
 if [ x"$NUM_WORKERS" = x"" ]; then
     NUM_WORKERS=8
 fi
@@ -26,4 +30,17 @@ else
     RELOAD=""
 fi
 
-exec gunicorn -w $NUM_WORKERS -b 0.0.0.0:$QMK_API_PORT --max-requests $MAX_REQUESTS --max-requests-jitter $MAX_REQUESTS_JITTER -t $TIMEOUT $RELOAD web:app
+if [ x"$ACCESS_LOGFILE" = x"" ]; then
+	if [ "$LOG_LEVEL" = "DEBUG" ]; then
+		ACCESS_LOGFILE="-"
+	else
+		ACCESS_LOGFILE="/dev/null"
+	fi
+fi
+
+if [ -e /qmk_compiler ]; then
+	# Setup qmk_compiler in the devel environment
+	pip3 install --editable /qmk_compiler || exit
+fi
+
+exec gunicorn --access-logfile $ACCESS_LOGFILE --log-level $LOG_LEVEL -w $NUM_WORKERS -b 0.0.0.0:$QMK_API_PORT --max-requests $MAX_REQUESTS --max-requests-jitter $MAX_REQUESTS_JITTER -t $TIMEOUT $RELOAD web:app
