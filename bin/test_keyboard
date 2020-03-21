@@ -11,7 +11,7 @@ if len(argv) < 2 or len(argv) > 4:
 else:
     keyboard = argv[1]
 
-baseurl = argv[2] if len(argv) > 2 else 'http://qmk_api:5000/v1'
+baseurl = argv[2] if len(argv) > 2 else 'http://qmk_api:5001/v1'
 compile_url = '/'.join((baseurl, 'compile'))
 http = requests.Session()
 http.headers.update({'Accept': 'application/json'})
