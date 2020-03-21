@@ -17,7 +17,7 @@ from rq import Queue
 import qmk_redis
 import qmk_storage
 from kle2xy import KLE2xy
-from qmk_compiler import compile_firmware, redis, ping
+from qmk_compiler import compile_json, redis, ping
 from update_kb_redis import update_kb_redis
 
 if exists('version.txt'):
@@ -26,7 +26,15 @@ if exists('version.txt'):
 else:
     __VERSION__ = '__UNKNOWN__'
 
-UPDATE_API = environ.get('UPDATE_API', 'false') == 'true'
+UPDATE_API = environ.get('UPDATE_API', 'false') == 'true'  # Whether or not the /update route is enabled
+CHECK_TIMEOUT = environ.get('CHECK_TIMEOUT', 300)  # How long the checks need to fail before we are degraded
+KEYMAP_JSON_DOCUMENTATION = """This file is a configurator export. It can be used directly with QMK's source code.
+
+To setup your QMK environment check out the tutorial: https://docs.qmk.fm/#/newbs
+
+You can convert this file to a keymap.c using this command: `qmk json2c %(keyboard)s_%(keymap)s.json`
+
+You can compile this keymap using this command: `qmk compile %(keyboard)s_%(keymap)s.json`"""
 
 
 ## Classes
@@ -50,9 +58,37 @@ cache_dir = 'kle_cache'
 gist_url = 'https://api.github.com/gists/%s'
 cors = CORS(app, resources={'/v*/*': {'origins': '*'}})
 rq = Queue(connection=redis)
+api_status = {
+    'last_ping': qmk_redis.get('qmk_api_last_ping'),
+    'queue_length': len(rq),
+    'status': 'starting',
+    'version': __VERSION__,
+}
+
 
 
 ## Helper functions
+def check_pings():
+    """Check the ping values and update api_status with them.
+    """
+    api_status['queue_length'] = len(rq)
+    for redis_key in ('qmk_api_last_ping', 'qmk_api_tasks_ping'):
+        key = redis_key.replace('qmk_api_', '')
+        api_status[key] = value
+
+        value = qmk_redis.get(redis_key)
+        if value:
+            if time() - float(value) > CHECK_TIMEOUT:
+                api_status['status'] = 'degraded'
+                api_status['status_%s' % key] = 'degraded'
+            else:
+                api_status['status'] = 'running'
+                api_status['status_%s' % key] = 'good'
+        else:
+            api_status['status'] = 'degraded'
+            api_status['status_%s' % key] = 'degraded'
+
+
 def client_ip():
     """Returns the client's IP address.
     """
@@ -150,20 +186,15 @@ def kle_to_qmk(kle):
 def root():
     """Serve up the documentation for this API.
     """
-    return redirect('https://docs.api.qmk.fm/')
+    return redirect('https://docs.qmk.fm/#/api_docs')
 
 
 @app.route('/v1', methods=['GET'])
 def GET_v1():
     """Return the API's status.
     """
-    return jsonify({
-        'children': ['compile', 'converters', 'keyboards'],
-        'last_ping': qmk_redis.get('qmk_api_last_ping'),
-        'queue_length': len(rq),
-        'status': 'running',
-        'version': __VERSION__,
-    })
+    check_pings()
+    return jsonify({'children': ['compile', 'converters', 'keyboards'], **api_status})
 
 
 @app.route('/v1/healthcheck', methods=['GET'])
@@ -175,33 +206,20 @@ def GET_v1_healthcheck():
     information is available at the /v1 endpoint as well.
     """
     rq.enqueue(ping, at_front=True)
-
-    return jsonify({
-        'last_ping': qmk_redis.get('qmk_api_last_ping'),
-        'queue_length': len(rq),
-        'queued_job_ids': rq.job_ids,
-        'status': 'running',
-        'version': __VERSION__,
-    })
+    check_pings()
+    return jsonify(api_status)
 
 
 @app.route('/v1/update', methods=['GET'])
 def GET_v1_update():
     """Triggers an update of the API.
     """
-    result = {
-        'result': UPDATE_API,
-        'last_ping': qmk_redis.get('qmk_api_last_ping'),
-        'queue_length': len(rq),
-        'queued_job_ids': rq.job_ids,
-        'status': 'running',
-        'version': __VERSION__,
-    }
+    check_pings()
 
     if UPDATE_API:
         rq.enqueue(update_kb_redis)
 
-    return jsonify(result)
+    return jsonify({'result': UPDATE_API, **api_status})
 
 
 @app.route('/v1/converters', methods=['GET'])
@@ -269,6 +287,7 @@ def GET_v1_keyboards_all():
     allkb = qmk_redis.get('qmk_api_kb_all')
     if allkb:
         return jsonify(allkb)
+
     return error('An unknown error occured', 500)
 
 
@@ -369,7 +388,18 @@ def POST_v1_compile():
     if '.' in data['keyboard'] or '/' in data['keymap']:
         return error("Buzz off hacker.", 422)
 
-    job = compile_firmware.delay(data['keyboard'], data['keymap'], data['layout'], data['layers'], client_ip())
+    bad_keys = []
+    for key in ('keyboard', 'keymap', 'layout', 'layers'):
+        if key not in data:
+            bad_keys.append(key)
+
+    if bad_keys:
+        return error("Invalid or missing keys: %s" % (', '.join(bad_keys),))
+
+    if 'documentation' not in data:
+        data['documentation'] = KEYMAP_JSON_DOCUMENTATION % data
+
+    job = compile_json.delay(data, client_ip())
     return jsonify({'enqueued': True, 'job_id': job.id})
 
 
