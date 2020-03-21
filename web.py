@@ -74,9 +74,9 @@ def check_pings():
     api_status['queue_length'] = len(rq)
     for redis_key in ('qmk_api_last_ping', 'qmk_api_tasks_ping'):
         key = redis_key.replace('qmk_api_', '')
+        value = qmk_redis.get(redis_key)
         api_status[key] = value
 
-        value = qmk_redis.get(redis_key)
         if value:
             if time() - float(value) > CHECK_TIMEOUT:
                 api_status['status'] = 'degraded'
