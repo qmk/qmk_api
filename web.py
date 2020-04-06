@@ -17,6 +17,7 @@ from rq import Queue
 import qmk_redis
 import qmk_storage
 from kle2xy import KLE2xy
+from qmk_commands import keymap_skeleton
 from qmk_compiler import compile_json, redis, ping
 from update_kb_redis import update_kb_redis
 
@@ -194,7 +195,7 @@ def GET_v1():
     """Return the API's status.
     """
     check_pings()
-    return jsonify({'children': ['compile', 'converters', 'keyboards'], **api_status})
+    return jsonify({'children': ['compile', 'converters', 'keyboards', 'skeletons'], **api_status})
 
 
 @app.route('/v1/healthcheck', methods=['GET'])
@@ -375,6 +376,13 @@ def GET_v1_usb():
     json_blob = qmk_redis.get('qmk_api_usb_list')
 
     return jsonify(json_blob)
+
+
+@app.route('/v1/skeletons/keymap', methods=['GET'])
+def GET_v1_usb():
+    """Returns a keymap skeleton.
+    """
+    return jsonify(keymap_skeleton())
 
 
 @app.route('/v1/compile', methods=['POST'])
