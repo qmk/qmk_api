@@ -378,8 +378,15 @@ def GET_v1_usb():
     return jsonify(json_blob)
 
 
+@app.route('/v1/skeletons', methods=['GET'])
+def GET_v1_skeletons():
+    """Return the list of available skeletons.
+    """
+    return jsonify({'children': ['keymap']})
+
+
 @app.route('/v1/skeletons/keymap', methods=['GET'])
-def GET_v1_usb():
+def GET_v1_skeletons_keymap():
     """Returns a keymap skeleton.
     """
     return jsonify(keymap_skeleton())
