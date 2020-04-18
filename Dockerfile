@@ -4,8 +4,7 @@ EXPOSE 5001
 
 WORKDIR /qmk_api
 COPY . /qmk_api
-# FIXME: Switch this back to master
-RUN pip3 install -r requirements.txt git+git://github.com/qmk/qmk_compiler.git@future git+git://github.com/skullydazed/kle2xy.git@master
+RUN pip3 install -r requirements.txt git+git://github.com/qmk/qmk_compiler.git@master git+git://github.com/skullydazed/kle2xy.git@master
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 CMD ./run
