@@ -14,8 +14,7 @@ from flask.json import JSONEncoder
 from flask_cors import CORS
 from rq import Queue
 
-from flask_swagger import swagger
-from flask_swagger_ui import get_swaggerui_blueprint
+from flasgger import Swagger
 
 import qmk_redis
 import qmk_storage
@@ -54,6 +53,7 @@ gist_url = 'https://api.github.com/gists/%s'
 cors = CORS(app, resources={'/v*/*': {'origins': '*'}})
 rq = Queue(connection=redis)
 
+swagger = Swagger(app)
 
 ## Helper functions
 def client_ip():
@@ -151,27 +151,7 @@ def kle_to_qmk(kle):
 ## Views
 
 ### swagger specific ###
-SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
-    "",
-    "/spec",
-    config={
-        'app_name': "QMK API"
-    }
-)
-app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix="/swagger")
 
-@app.route("/spec")
-def spec():
-    """
-        Swagger JSON
-        ---
-        tags:
-            - General
-    """
-    swag = swagger(app)
-    swag['info']['version'] = "1.0"
-    swag['info']['title'] = "QMK API"
-    return jsonify(swag)
 
 @app.route('/', methods=['GET'])
 def root():
