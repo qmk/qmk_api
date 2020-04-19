@@ -151,16 +151,15 @@ def kle_to_qmk(kle):
 ## Views
 
 ### swagger specific ###
-SWAGGER_URL = '/swagger'
-API_URL = '/spec'
 SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
-    SWAGGER_URL,
-    API_URL,
+    "",
+    "/spec",
     config={
         'app_name': "QMK API"
     }
 )
-app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
+app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix="/swagger")
+
 @app.route("/spec")
 def spec():
     """
