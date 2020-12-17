@@ -12,6 +12,7 @@ from flask import jsonify, Flask, redirect, request, send_file
 from flask import make_response
 from flask.json import JSONEncoder
 from flask_cors import CORS
+from flask_graphite import FlaskGraphite
 from rq import Queue
 
 import qmk_redis
@@ -52,9 +53,16 @@ class CustomJSONEncoder(JSONEncoder):
 
 
 # Useful objects
+metric_sender = FlaskGraphite()
 app = Flask(__name__)
 app.json_encoder = CustomJSONEncoder
 app.config['JSON_SORT_KEYS'] = False
+app.config['FLASK_GRAPHITE_HOST'] = environ.get('FLASK_GRAPHITE_HOST', 'graphite')
+app.config['FLASK_GRAPHITE_PORT'] = int(environ.get('FLASK_GRAPHITE_PORT', 2023))
+app.config['FLASK_GRAPHITE_PREFIX'] = environ.get('FLASK_GRAPHITE_PREFIX', '')
+app.config['FLASK_GRAPHITE_GROUP'] = environ.get('FLASK_GRAPHITE_GROUP', 'qmk_api')
+app.config['FLASK_GRAPHITE_AUTORECONNECT'] = environ.get('FLASK_GRAPHITE_AUTORECONNECT', 'true') == 'true'
+app.config['FLASK_GRAPHITE_METRIC_TEMPLATE'] = environ.get('FLASK_GRAPHITE_METRIC_TEMPLATE', 'url_rule')
 cache_dir = 'kle_cache'
 gist_url = 'https://api.github.com/gists/%s'
 cors = CORS(app, resources={'/v*/*': {'origins': '*'}})
@@ -66,6 +74,7 @@ api_status = {
     'version': __VERSION__,
 }
 
+metric_sender.init_app(app)
 
 
 ## Helper functions
@@ -308,7 +317,6 @@ def GET_v1_keyboards_keyboard(keyboard):
         return error('No such keyboard: ' + keyboard, 404)
 
     return jsonify(keyboards)
-
 
 @app.route('/v1/keyboards/<path:keyboard>/readme', methods=['GET'])
 def GET_v1_keyboards_keyboard_readme(keyboard):

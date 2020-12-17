@@ -3,6 +3,8 @@ boto3
 dhooks
 flask
 flask-cors
+flask_graphite
+graphyte
 gunicorn
 requests
 rq

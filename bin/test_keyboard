@@ -96,10 +96,16 @@ while True:
                 print(job_status)
                 break
             elif job_status['status'] == 'finished':
-                print('*** Compile succeeded!')
-                print('*** Waited %s seconds for firmware.' % (time() - startTime))
-                print('*** Download Hex: ' + '\n'.join(job_status['result']['firmware_binary_url']))
-                print('*** Download Src: ' + '\n'.join(job_status['result']['firmware_source_url']))
+                print(job_status['result'])
+                print('*** Compile finished!')
+                print('*** Waited %s seconds for compile.' % (time() - startTime))
+                if 'firmware_binary_url' in job_status['result']:
+                    print('*** Download Hex: ' + '\n'.join(job_status['result']['firmware_binary_url']))
+                else:
+                    print('*** No firmware! Compile output:')
+                    print(job_status['result']['output'])
+                if 'firmware_source_url' in job_status['result']:
+                    print('*** Download Src: ' + '\n'.join(job_status['result']['firmware_source_url']))
                 exit(0)
             else:
                 break
