@@ -6,6 +6,8 @@ flask-cors
 flask_graphite
 graphyte
 gunicorn
+python-geoip-python3
+python-geoip-geolite2
 requests
 rq
 sparse_list
