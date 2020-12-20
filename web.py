@@ -7,6 +7,7 @@ from os.path import exists
 from os import stat, remove, makedirs, environ
 from time import strftime, time, localtime
 
+import graphyte
 import requests
 from flask import jsonify, Flask, redirect, request, send_file
 from flask import make_response
@@ -30,6 +31,10 @@ else:
 
 UPDATE_API = environ.get('UPDATE_API', 'false') == 'true'  # Whether or not the /update route is enabled
 CHECK_TIMEOUT = environ.get('CHECK_TIMEOUT', 300)  # How long the checks need to fail before we are degraded
+FLASK_GRAPHITE_HOST = environ.get('FLASK_GRAPHITE_HOST', 'qmk_metrics_aggregator')
+FLASK_GRAPHITE_PORT = int(environ.get('FLASK_GRAPHITE_PORT', 2023))
+QUERY_GRAPHITE_HOST = environ.get('QUERY_GRAPHITE_HOST', 'graphite')
+QUERY_GRAPHITE_PORT = int(environ.get('QUERY_GRAPHITE_PORT', 8080))
 KEYMAP_JSON_DOCUMENTATION = """This file is a configurator export. It can be used directly with QMK's source code.
 
 To setup your QMK environment check out the tutorial: https://docs.qmk.fm/#/newbs
@@ -57,8 +62,8 @@ metric_sender = FlaskGraphite()
 app = Flask(__name__)
 app.json_encoder = CustomJSONEncoder
 app.config['JSON_SORT_KEYS'] = False
-app.config['FLASK_GRAPHITE_HOST'] = environ.get('FLASK_GRAPHITE_HOST', 'graphite')
-app.config['FLASK_GRAPHITE_PORT'] = int(environ.get('FLASK_GRAPHITE_PORT', 2023))
+app.config['FLASK_GRAPHITE_HOST'] = FLASK_GRAPHITE_HOST
+app.config['FLASK_GRAPHITE_PORT'] = FLASK_GRAPHITE_PORT
 app.config['FLASK_GRAPHITE_PREFIX'] = environ.get('FLASK_GRAPHITE_PREFIX', '')
 app.config['FLASK_GRAPHITE_GROUP'] = environ.get('FLASK_GRAPHITE_GROUP', 'qmk_api')
 app.config['FLASK_GRAPHITE_AUTORECONNECT'] = environ.get('FLASK_GRAPHITE_AUTORECONNECT', 'true') == 'true'
@@ -74,6 +79,7 @@ api_status = {
     'version': __VERSION__,
 }
 
+graphyte.init(FLASK_GRAPHITE_HOST, FLASK_GRAPHITE_PORT)
 metric_sender.init_app(app)
 
 
@@ -117,6 +123,34 @@ def get_job_metadata(job_id):
     """
     json_text = qmk_storage.get('%s/%s.json' % (job_id, job_id))
     return json.loads(json_text)
+
+
+def fetch_graphite_sum(target, from_time='-24h', until_time='-1s'):
+    """Returns summed values from graphite.
+
+    Parameters are as described by the graphite API:
+        <https://graphite-api.readthedocs.io/en/latest/api.html#the-metrics-api>
+    """
+    graphite_url = f'http://{QUERY_GRAPHITE_HOST}:{QUERY_GRAPHITE_PORT}/render'
+    query_args = {
+        'target': target,
+        'format': 'json',
+        'from': from_time,
+        'until': until_time
+    }
+    rawdata = requests.get(graphite_url, params=query_args)
+    data = {}
+
+    for line in rawdata.json():
+        datapoint = 0
+        for dp in line['datapoints']:
+            if dp[0] is not None:
+                datapoint += dp[0]
+
+        if datapoint:
+            data[line['target']] = datapoint
+
+    return data
 
 
 def fetch_kle_json(gist_id):
@@ -280,6 +314,68 @@ def POST_v1_converters_kle():
     response.mimetype = app.config['JSONIFY_MIMETYPE']
 
     return response
+
+
+@app.route('/v1/metrics/keyboards/days/<int:days>', methods=['GET'])
+@app.route('/v1/metrics/keyboards', methods=['GET'])
+def GET_v1_metrics_keyboards(days=1):
+    """Return some data about the keyboards we've seen.
+    """
+    if days > 7:
+        days = 7
+
+    from_time = f'-{days}d'
+    keyboards = fetch_graphite_sum(['qmk_cli.*.*.all_layouts','qmk_compiler.compile_json.*.all_layouts'], from_time=from_time)
+
+    return jsonify(keyboards=keyboards)
+
+
+@app.route('/v1/metrics/locations/days/<int:days>', methods=['GET'])
+@app.route('/v1/metrics/locations', methods=['GET'])
+def GET_v1_metrics_location(days=1):
+    """Return some data about the locations users have reported from.
+    """
+    if days > 7:
+        days = 7
+
+    from_time = f'-{days}d'
+    locations = fetch_graphite_sum('*.geoip.*', from_time=from_time)
+
+    return jsonify(locations=locations)
+
+
+@app.route('/v1/telemetry', methods=['POST'])
+def POST_v1_telemetry():
+    """Process a telemetry packet from the CLI.
+    """
+    base_metric = f'{gethostname()}.qmk_cli'
+    data = request.get_json(force=True)
+
+    if not data:
+        return error("Invalid JSON data!")
+
+    action = data.get('action')
+    keyboard = data.get('keyboard')
+    layout = data.get('layout')
+    location_ok = data.get('location_ok')
+
+    if action and keyboard and layout:
+        metric_name = f'{base_metric}.{action}.{keyboard}'
+        graphyte.send(f'{metric_name}.all_layouts', 1)
+        graphyte.send(f'{metric_name}.{layout}', 1)
+
+    if location_ok:
+        ip_location = geolite2.lookup(client_ip())
+
+        if ip_location:
+            if ip_location.subdivisions:
+                location_key = f'{ip_location.country}_{"_".join(ip_location.subdivisions)}'
+            else:
+                location_key = ip_location.country
+
+            graphyte.send(f'{base_metric}.geoip.{location_key}', 1)
+
+    return jsonify(message='Thanks for helping to improve QMK!')
 
 
 @app.route('/v1/keyboards', methods=['GET'])
