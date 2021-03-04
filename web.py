@@ -114,6 +114,7 @@ def client_ip():
 def error(message, code=400, **kwargs):
     """Return a structured JSON error message.
     """
+    kwargs['code'] = code
     kwargs['message'] = message
     return jsonify(kwargs), code
 
@@ -390,11 +391,7 @@ def GET_v1_keyboards():
 def GET_v1_keyboards_all():
     """Return JSON showing all available keyboards and their layouts.
     """
-    allkb = qmk_redis.get('qmk_api_kb_all')
-    if allkb:
-        return jsonify(allkb)
-
-    return error('An unknown error occured', 500)
+    return redirect('https://keyboards.qmk.fm/v1/keyboards.json')
 
 
 @app.route('/v1/keyboards/<path:keyboard>', methods=['GET'])
@@ -419,6 +416,9 @@ def GET_v1_keyboards_keyboard_readme(keyboard):
     """Returns the readme for a keyboard.
     """
     readme = qmk_redis.get('qmk_api_kb_%s_readme' % (keyboard))
+
+    if not readme:
+        return error('No readme for ' + keyboard, 404)
 
     response = make_response(readme)
     response.mimetype = 'text/markdown'
