@@ -11,3 +11,4 @@ python-geoip-geolite2
 requests
 rq
 sparse_list
+flasgger

@@ -18,3 +18,5 @@ We follow the style guidelines for QMK and have provided a yapf config in [setup
 Our documentation lives on GitBook and can be found here:
 
 > https://docs.api.qmk.fm/using-the-api
+
+The swagger documentation can be found at `API_URL/spec` (JSON) or `API_URL/swagger` (UI)
