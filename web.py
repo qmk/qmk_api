@@ -255,18 +255,6 @@ def GET_v1_healthcheck():
     return jsonify(api_status)
 
 
-@app.route('/v1/update', methods=['GET'])
-def GET_v1_update():
-    """Triggers an update of the API.
-    """
-    check_pings()
-
-    if UPDATE_API:
-        rq.enqueue(update_kb_redis)
-
-    return jsonify({'result': UPDATE_API, **api_status})
-
-
 @app.route('/v1/converters', methods=['GET'])
 def GET_v1_converters():
     """Return the list of converters we support.
@@ -383,8 +371,8 @@ def POST_v1_telemetry():
 def GET_v1_keyboards():
     """Return a list of keyboards
     """
-    json_blob = qmk_redis.get('qmk_api_keyboards')
-    return jsonify(json_blob)
+    keyboard_list = requests.get('https://keyboards.qmk.fm/v1/keyboard_list.json')
+    return jsonify(keyboard_list.json()['keyboards'])
 
 
 @app.route('/v1/keyboards/all', methods=['GET'])
@@ -398,32 +386,13 @@ def GET_v1_keyboards_all():
 def GET_v1_keyboards_keyboard(keyboard):
     """Return JSON showing data about a keyboard
     """
-    keyboards = qmk_redis.get('qmk_api_last_updated')
-    keyboards['keyboards'] = {}
-
-    for kb in keyboard.split(','):
-        kb_data = qmk_redis.get('qmk_api_kb_' + kb)
-        if kb_data:
-            keyboards['keyboards'][kb] = kb_data
-
-    if not keyboards['keyboards']:
-        return error('No such keyboard: ' + keyboard, 404)
-
-    return jsonify(keyboards)
+    return redirect(f'https://keyboards.qmk.fm/v1/keyboards/<keyboard>/info.json')
 
 @app.route('/v1/keyboards/<path:keyboard>/readme', methods=['GET'])
 def GET_v1_keyboards_keyboard_readme(keyboard):
     """Returns the readme for a keyboard.
     """
-    readme = qmk_redis.get('qmk_api_kb_%s_readme' % (keyboard))
-
-    if not readme:
-        return error('No readme for ' + keyboard, 404)
-
-    response = make_response(readme)
-    response.mimetype = 'text/markdown'
-
-    return response
+    return redirect(f'https://keyboards.qmk.fm/v1/keyboards/<keyboard>/readme.md')
 
 
 @app.route('/v1/keyboards/<path:keyboard>/keymaps/<string:keymap>', methods=['GET'])
@@ -477,9 +446,7 @@ def GET_v1_keyboards_error_log():
 def GET_v1_usb():
     """Returns the list of USB device identifiers used in QMK.
     """
-    json_blob = qmk_redis.get('qmk_api_usb_list')
-
-    return jsonify(json_blob)
+    return redirect(f'https://keyboards.qmk.fm/v1/usb.json')
 
 
 @app.route('/v1/skeletons', methods=['GET'])
