@@ -1,0 +1,24 @@
+# This workflow will upload a Docker container
+
+name: Upload Docker Container
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'master'
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1.10.0
+      with:
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+    - name: Build and Push to Docker Hub
+      uses: docker/build-push-action@v2.6.1
+      with:
+        push: true
+        tags: qmkfm/qmk_api:latest
