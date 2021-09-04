@@ -1,4 +1,4 @@
-FROM python:3.9
+FROM python:3.7
 MAINTAINER Zach White <skullydazed@gmail.com>
 EXPOSE 5001
 

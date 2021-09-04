@@ -11,6 +11,7 @@ if len(argv) < 2 or len(argv) > 4:
 else:
     keyboard = argv[1]
 
+metadata_url = 'https://keyboards.qmk.fm/v1'
 baseurl = argv[2] if len(argv) > 2 else 'http://qmk_api:5001/v1'
 compile_url = '/'.join((baseurl, 'compile'))
 http = requests.Session()
@@ -18,7 +19,7 @@ http.headers.update({'Accept': 'application/json'})
 http.headers.update({'User-Agent': 'qmk_compile_api test client v0.1'})
 
 # Pull down info about the keyboard
-metadata = http.get('/'.join((baseurl, 'keyboards', keyboard))).json()
+metadata = http.get(f'{metadata_url}/keyboards/{keyboard}/info.json').json()
 metadata = metadata['keyboards'][keyboard]
 if not metadata['layouts']:
     print('No available layouts for %s!' % keyboard)

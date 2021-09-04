@@ -10,8 +10,9 @@ from time import strftime, time, localtime
 import graphyte
 import requests
 from flask import jsonify, Flask, redirect, request, send_file
-from flask import make_response
+from flask import has_request_context, make_response, request
 from flask.json import JSONEncoder
+from flask.logging import default_handler
 from flask_cors import CORS
 from flask_graphite import FlaskGraphite
 from rq import Queue
@@ -43,6 +44,25 @@ You can convert this file to a keymap.c using this command: `qmk json2c %(keyboa
 
 You can compile this keymap using this command: `qmk compile %(keyboard)s_%(keymap)s.json`"""
 
+## Configure logging
+class RequestFormatter(logging.Formatter):
+    def format(self, record):
+        if has_request_context():
+            record.url = request.url
+            record.remote_addr = request.remote_addr
+        else:
+            record.url = None
+            record.remote_addr = None
+
+        return super().format(record)
+
+default_handler.setFormatter(RequestFormatter(
+    '[%(asctime)s] %(remote_addr)s requested %(url)s\n'
+    '%(levelname)s in %(module)s: %(message)s'
+))
+
+root = logging.getLogger()
+root.addHandler(default_handler)
 
 ## Classes
 class CustomJSONEncoder(JSONEncoder):
@@ -166,19 +186,19 @@ def fetch_kle_json(gist_id):
         file_age = time() - file_stat.st_mtime
 
         if file_stat.st_size == 0:
-            logging.warning('Removing zero-length cache file %s', cache_file)
+            app.logger.warning('Removing zero-length cache file %s', cache_file)
             remove(cache_file)
         elif file_age < 30:
-            logging.info('Using cache file %s (%s < 30)', cache_file, file_age)
+            app.logger.info('Using cache file %s (%s < 30)', cache_file, file_age)
             return copen(cache_file, encoding='UTF-8').read()
         else:
             headers['If-Modified-Since'] = strftime('%a, %d %b %Y %H:%M:%S %Z', localtime(file_stat.st_mtime))
-            logging.warning('Adding If-Modified-Since: %s to headers.', headers['If-Modified-Since'])
+            app.logger.warning('Adding If-Modified-Since: %s to headers.', headers['If-Modified-Since'])
 
     keyboard = requests.get(gist_url % gist_id, headers=headers)
 
     if keyboard.status_code == 304:
-        logging.debug("Source for %s hasn't changed, loading from disk.", cache_file)
+        app.logger.debug("Source for %s hasn't changed, loading from disk.", cache_file)
         return copen(cache_file, encoding='UTF-8').read()
 
     keyboard = keyboard.json()
@@ -282,8 +302,8 @@ def POST_v1_converters_kle():
     try:
         kle = KLE2xy(raw_code)
     except Exception as e:
-        logging.error('Could not parse KLE raw data: %s', raw_code)
-        logging.exception(e)
+        app.logger.error('Could not parse KLE raw data: %s', raw_code)
+        app.logger.exception(e)
         return error('Could not parse KLE raw data.')  # FIXME: This should be better
 
     keyboard = OrderedDict(
@@ -505,7 +525,7 @@ def GET_v1_compile_job_id(job_id):
         elif job.is_failed:
             status = 'failed'
         else:
-            logging.error('Unknown job status!')
+            app.logger.error('Unknown job status!')
             status = 'unknown'
 
         return jsonify({
