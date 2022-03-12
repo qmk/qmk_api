@@ -43,4 +43,6 @@ if [ -e /qmk_compiler ]; then
 	pip3 install --editable /qmk_compiler || exit
 fi
 
+service nginx start
+
 exec gunicorn --access-logfile $ACCESS_LOGFILE --log-level $LOG_LEVEL -w $NUM_WORKERS -b 0.0.0.0:$QMK_API_PORT --max-requests $MAX_REQUESTS --max-requests-jitter $MAX_REQUESTS_JITTER -t $TIMEOUT $RELOAD web:app
