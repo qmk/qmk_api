@@ -7,6 +7,7 @@ from os.path import exists
 from os import stat, remove, makedirs, environ
 from time import strftime, time, localtime
 
+from botocore.exceptions import ClientError
 import graphyte
 import requests
 from flask import jsonify, Flask, redirect, request, send_file
@@ -530,15 +531,19 @@ def GET_v1_compile_job_id(job_id):
             'created_at': job.created_at,
             'enqueued_at': job.enqueued_at,
             'id': job.id,
-            'is_failed': job.is_failed or (job.result and job.result.get('returncode') != 0),
+            'is_failed': job.is_failed,
             'status': status,
             'result': job.result,
         })
 
     # Check for cached json if it's not in redis
-    job = get_job_metadata(job_id)
-    if job:
-        return jsonify(job)
+    try:
+        job = get_job_metadata(job_id)
+        if job:
+            return jsonify(job)
+    except ClientError as ex:
+        if ex.response['Error']['Code'] != 'NoSuchKey':
+            raise
 
     # Couldn't find it
     return error("Compile job not found", 404)
