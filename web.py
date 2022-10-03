@@ -287,36 +287,37 @@ def GET_v1_converters():
 def POST_v1_converters_kle():
     """Convert a KLE layout to QMK's layout format.
     """
-    data = request.get_json(force=True)
-    if not data:
-        return error("Invalid JSON data!")
-
-    if 'id' in data:
-        gist_id = data['id'].split('/')[-1]
-        raw_code = fetch_kle_json(gist_id)[1:-1]
-    elif 'raw' in data:
-        raw_code = data['raw']
-    else:
-        return error('You must supply either "id" or "raw" labels.')
-
     try:
+        data = request.get_json(force=True)
+        if not data:
+            return error("Invalid JSON data!")
+
+        if 'id' in data:
+            gist_id = data['id'].split('/')[-1]
+            raw_code = fetch_kle_json(gist_id)[1:-1]
+        elif 'raw' in data:
+            raw_code = data['raw']
+        else:
+            return error('You must supply either "id" or "raw" labels.')
+
         kle = KLE2xy(raw_code)
+
+        keyboard = OrderedDict(
+            keyboard_name=kle.name,
+            url='',
+            maintainer='qmk',
+            layouts={'LAYOUT': {
+                'layout': 'LAYOUT_JSON_HERE'
+            }},
+        )
+        keyboard = json.dumps(keyboard, indent=4, separators=(', ', ': '), sort_keys=False, cls=CustomJSONEncoder)
+        layout = json.dumps(kle_to_qmk(kle), separators=(', ', ':'), cls=CustomJSONEncoder)
+        keyboard = keyboard.replace('"LAYOUT_JSON_HERE"', layout)
     except Exception as e:
         app.logger.error('Could not parse KLE raw data: %s', raw_code)
         app.logger.exception(e)
-        return error('Could not parse KLE raw data.')  # FIXME: This should be better
+        return error('Could not parse KLE raw data: %s', e)
 
-    keyboard = OrderedDict(
-        keyboard_name=kle.name,
-        url='',
-        maintainer='qmk',
-        layouts={'LAYOUT': {
-            'layout': 'LAYOUT_JSON_HERE'
-        }},
-    )
-    keyboard = json.dumps(keyboard, indent=4, separators=(', ', ': '), sort_keys=False, cls=CustomJSONEncoder)
-    layout = json.dumps(kle_to_qmk(kle), separators=(', ', ':'), cls=CustomJSONEncoder)
-    keyboard = keyboard.replace('"LAYOUT_JSON_HERE"', layout)
     response = make_response(keyboard)
     response.mimetype = app.config['JSONIFY_MIMETYPE']
 
