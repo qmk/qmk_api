@@ -1,7 +1,7 @@
 beautifulsoup4
 boto3
 dhooks
-flask
+flask == 2.1.3
 flask-cors
 flask_graphite
 graphyte
@@ -11,3 +11,4 @@ python-geoip-geolite2
 requests
 rq
 sparse_list
+werkzeug == 2.1.2
