@@ -443,12 +443,30 @@ def GET_v1_keyboards_build_status():
 
 @app.route('/v1/keyboards/build_log', methods=['GET'])
 def GET_v1_keyboards_build_log():
-    """Returns a dictionary of keyboard/layout pairs. Each entry is a dictionary with the following keys:
+    """Return the last build log for each keyboard. Each entry is a dictionary with the following keys:
 
     * `works`: Boolean indicating whether the compile was successful
-    * `message`: The compile output for failed builds
+    * `last_tested`: Unix timestamp of the last build
+    * `message`: The compile output
     """
     json_data = qmk_redis.get('qmk_api_configurator_status')
+    return jsonify(json_data)
+
+
+@app.route('/v1/keyboards/build_summary', methods=['GET'])
+def GET_v1_keyboards_build_summary():
+    """Return the last build log for each keyboard, similar to the above but without the `message` entry.
+    """
+    json_data = qmk_redis.get('qmk_api_configurator_status')
+    without_message = {kb: {k: v for (k, v) in status.items() if k != 'message'} for (kb, status) in json_data.items()}
+    return jsonify(without_message)
+
+
+@app.route('/v1/keyboards/<path:keyboard>/build_log', methods=['GET'])
+def GET_v1_keyboards_keyboard_build_log(keyboard):
+    """Return the last build log for the given keyboard.
+    """
+    json_data = qmk_redis.get('qmk_api_configurator_status').get(keyboard)
     return jsonify(json_data)
 
 
