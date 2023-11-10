@@ -11,4 +11,4 @@ python-geoip-geolite2
 requests
 rq
 sparse_list
-werkzeug == 2.1.2
+werkzeug == 2.2.3
