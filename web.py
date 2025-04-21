@@ -6,6 +6,7 @@ from decimal import Decimal
 from os.path import exists
 from os import stat, remove, makedirs, environ
 from time import strftime, time, localtime
+from urllib.parse import urlparse
 
 import graphyte
 import requests
@@ -131,6 +132,12 @@ def client_ip():
     return request.headers.get('X-Forwarded-For', request.remote_addr)
 
 
+def request_hostname():
+    """Returns the hostname of the request.
+    """
+    return urlparse(request.base_url).hostname
+
+
 def error(message, code=400, **kwargs):
     """Return a structured JSON error message.
     """
@@ -251,7 +258,16 @@ def kle_to_qmk(kle):
 def root():
     """Serve up the documentation for this API.
     """
+    if request_hostname() == 'install.qmk.fm':
+        return redirect('https://raw.githubusercontent.com/qmk/qmk_firmware/refs/heads/bootstrap/util/env-bootstrap.sh')
     return redirect('https://docs.qmk.fm/#/api_docs')
+
+
+@app.route('/install.sh', methods=['GET'])
+def install():
+    """Serve up the install script for the QMK CLI.
+    """
+    return redirect('https://raw.githubusercontent.com/qmk/qmk_firmware/refs/heads/bootstrap/util/env-bootstrap.sh')
 
 
 @app.route('/v1', methods=['GET'])
