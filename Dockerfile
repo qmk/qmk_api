@@ -1,4 +1,4 @@
-FROM python:3.9
+FROM ghcr.io/qmk/qmk_cli
 MAINTAINER Zach White <skullydazed@gmail.com>
 EXPOSE 5001
 
