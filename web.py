@@ -259,7 +259,7 @@ def root():
     """Serve up the documentation for this API.
     """
     if request_hostname() == 'install.qmk.fm':
-        return redirect('https://raw.githubusercontent.com/qmk/qmk_firmware/refs/heads/bootstrap/util/env-bootstrap.sh')
+        return redirect('https://raw.githubusercontent.com/qmk/qmk_firmware/refs/heads/master/util/env-bootstrap.sh')
     return redirect('https://docs.qmk.fm/#/api_docs')
 
 
@@ -267,7 +267,7 @@ def root():
 def install():
     """Serve up the install script for the QMK CLI.
     """
-    return redirect('https://raw.githubusercontent.com/qmk/qmk_firmware/refs/heads/bootstrap/util/env-bootstrap.sh')
+    return redirect('https://raw.githubusercontent.com/qmk/qmk_firmware/refs/heads/master/util/env-bootstrap.sh')
 
 
 @app.route('/v1', methods=['GET'])
