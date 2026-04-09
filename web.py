@@ -291,7 +291,7 @@ def POST_v1_converters_kle():
         return error('Could not parse KLE raw data: %s', e)
 
     response = make_response(keyboard)
-    response.mimetype = app.config['JSONIFY_MIMETYPE']
+    response.mimetype = app.json.mimetype
 
     return response
 
